@@ -14,10 +14,10 @@ param location string = 'eastus'
 param namePrefix string = 'sift'
 
 @description('Container image for the API and the ingestion job.')
-param apiImage string = 'ghcr.io/ammar-siddiqui/sift/api:latest'
+param apiImage string = 'ghcr.io/ammar2811/sift/api:latest'
 
 @description('Container image for the web frontend.')
-param webImage string = 'ghcr.io/ammar-siddiqui/sift/web:latest'
+param webImage string = 'ghcr.io/ammar2811/sift/web:latest'
 
 @description('Administrator login for PostgreSQL.')
 param postgresAdminUser string = 'sift'

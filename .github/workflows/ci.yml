@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Manual trigger, because the very first push to a freshly created repository does
+  # not always raise a push event and there has to be a way to run CI on demand.
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
