@@ -20,9 +20,7 @@ from dataclasses import dataclass, field
 # then a title. Body text is indented, so anchoring at column 0 excludes prose, and
 # the table of contents is indented in every era, so it is excluded too.
 _HEADING = re.compile(r"^(?P<num>\d+(?:\.\d+)*)\.?[ \t]+(?P<title>\S.*?)\s*$")
-_APPENDIX = re.compile(
-    r"^(?:Appendix[ \t]+)?(?P<num>[A-Z](?:\.\d+)*)\.[ \t]+(?P<title>\S.*?)\s*$"
-)
+_APPENDIX = re.compile(r"^(?:Appendix[ \t]+)?(?P<num>[A-Z](?:\.\d+)*)\.[ \t]+(?P<title>\S.*?)\s*$")
 _UNNUMBERED = re.compile(r"^(?P<title>[A-Z][A-Za-z][^.]{2,70})$")
 
 _PAGE_FOOTER = re.compile(r"^.*\[Page[ \t]+\d+\][ \t]*$")
@@ -31,9 +29,7 @@ _PAGE_FOOTER = re.compile(r"^.*\[Page[ \t]+\d+\][ \t]*$")
 # but older RFCs split them across two lines and sometimes invert the order, putting
 # the date above the RFC number (see RFC 792). Rather than enumerate every layout,
 # recognise the *ingredients* of a header line and drop a short run of them.
-_MONTHS = (
-    "January|February|March|April|May|June|July|August|September|October|November|December"
-)
+_MONTHS = "January|February|March|April|May|June|July|August|September|October|November|December"
 _HEADER_INGREDIENT = re.compile(
     rf"(^|\s)(RFC[ \t]+\d+|(?:{_MONTHS})[ \t]+\d{{4}}|\[Page[ \t]+\d+\])(\s|$)"
 )
@@ -47,7 +43,11 @@ _TOC_LEADER = re.compile(r"\.{3,}\s*\d+\s*$")
 _FRONT_MATTER_LABEL = re.compile(r"^[A-Z][A-Za-z' ]{2,40}:[ \t]")
 _DATE_LINE = re.compile(rf"^(?:{_MONTHS})[ \t]+\d{{1,2}},[ \t]*\d{{4}}\s*$")
 
-_NORMATIVE = re.compile(r"\b(MUST NOT|SHALL NOT|SHOULD NOT|MUST|SHALL|SHOULD|REQUIRED|RECOMMENDED|NOT RECOMMENDED|MAY|OPTIONAL)\b")
+# RFC 2119 / BCP 14 requirement keywords, which are what make a section normative.
+_NORMATIVE = re.compile(
+    r"\b(MUST NOT|SHALL NOT|SHOULD NOT|NOT RECOMMENDED|MUST|SHALL|SHOULD"
+    r"|REQUIRED|RECOMMENDED|MAY|OPTIONAL)\b"
+)
 
 # Front matter that is boilerplate in every RFC and pure noise in a retrieval index.
 _BOILERPLATE_TITLES = frozenset(
@@ -262,9 +262,7 @@ def parse_rfc(number: int, raw: str, *, drop_boilerplate: bool = True) -> Parsed
             # A heading with no body of its own is a parent (e.g. "3." above "3.1.");
             # keep it so the tree stays navigable, but it will not produce chunks.
             text = ""
-        sections.append(
-            Section(number=num, title=title.strip(), text=text, line_start=line_no)
-        )
+        sections.append(Section(number=num, title=title.strip(), text=text, line_start=line_no))
 
     # Character offsets let a citation point back into the exact source span.
     cursor = 0
