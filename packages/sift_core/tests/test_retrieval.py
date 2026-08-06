@@ -9,7 +9,9 @@ import psycopg
 import pytest
 
 from packages.sift_core.retrieval import (
+    DEFAULT_KEYWORD_WEIGHT,
     RRF_K,
+    KeywordSemantics,
     SearchFilters,
     SearchMode,
     get_section,
@@ -66,10 +68,60 @@ def test_rrf_score_matches_the_formula(
     for hit in hits:
         expected = 0.0
         if hit.dense_rank is not None:
-            expected += 1 / (RRF_K + hit.dense_rank)
+            expected += 1.0 / (RRF_K + hit.dense_rank)
         if hit.keyword_rank is not None:
-            expected += 1 / (RRF_K + hit.keyword_rank)
+            expected += DEFAULT_KEYWORD_WEIGHT / (RRF_K + hit.keyword_rank)
         assert hit.score == pytest.approx(expected, rel=1e-6)
+
+
+def test_keyword_weight_changes_the_fused_score(
+    seeded_db: tuple[psycopg.Connection[Any], int], vector: list[float]
+) -> None:
+    """Weighting is what stops a weak retriever from outvoting a strong one."""
+    conn, version_id = seeded_db
+    # A wide k so the same chunk appears under both weightings; at k=10 a down-weighted
+    # keyword-only hit simply drops out, which is the intended effect but leaves
+    # nothing to compare.
+    common = {"query": "Host header field", "embedding": vector, "mode": "hybrid", "k": 60}
+    heavy = search(conn, version_id, keyword_weight=1.0, **common)  # type: ignore[arg-type]
+    light = search(conn, version_id, keyword_weight=0.1, **common)  # type: ignore[arg-type]
+
+    keyword_only = next((h for h in heavy if h.dense_rank is None), None)
+    if keyword_only is None:
+        pytest.skip("no keyword-only hit in this fixture")
+    same = next((h for h in light if h.chunk_id == keyword_only.chunk_id), None)
+    assert same is not None, "expected the chunk to still be retrieved, only ranked lower"
+    assert same.score < keyword_only.score
+
+    # And its rank must fall relative to hits the dense retriever also found.
+    assert [h.chunk_id for h in light].index(same.chunk_id) >= [h.chunk_id for h in heavy].index(
+        keyword_only.chunk_id
+    )
+
+
+def test_keyword_semantics_any_matches_more_than_all(
+    seeded_db: tuple[psycopg.Connection[Any], int],
+) -> None:
+    """A natural-language question ANDed term-by-term matches almost nothing."""
+    conn, version_id = seeded_db
+    question = "What does the HTTP Host header field provide?"
+    strict = search(
+        conn,
+        version_id,
+        query=question,
+        mode="keyword",
+        k=20,
+        keyword_semantics=KeywordSemantics.ALL,
+    )
+    loose = search(
+        conn,
+        version_id,
+        query=question,
+        mode="keyword",
+        k=20,
+        keyword_semantics=KeywordSemantics.ANY,
+    )
+    assert len(loose) > len(strict)
 
 
 def test_results_are_ordered_by_score(

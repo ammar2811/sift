@@ -31,7 +31,12 @@ from eval.metrics import hit_rate, mean, ndcg_at_k, precision_at_k, recall_at_k,
 from packages.sift_core import db
 from packages.sift_core.config import get_settings
 from packages.sift_core.providers import build_embedding_provider
-from packages.sift_core.retrieval import SearchMode, search
+from packages.sift_core.retrieval import (
+    DEFAULT_KEYWORD_WEIGHT,
+    KeywordSemantics,
+    SearchMode,
+    search,
+)
 
 RESULTS_DIR = Path(__file__).parent / "results"
 K_VALUES = (1, 3, 5, 10)
@@ -89,6 +94,8 @@ def evaluate_question(
     mode: SearchMode,
     k: int,
     candidates: int,
+    keyword_weight: float = DEFAULT_KEYWORD_WEIGHT,
+    keyword_semantics: KeywordSemantics = KeywordSemantics.ANY,
 ) -> QuestionResult:
     started = time.perf_counter()
     embedding = (
@@ -104,6 +111,8 @@ def evaluate_question(
         mode=mode,
         k=k,
         candidates=candidates,
+        keyword_weight=keyword_weight,
+        keyword_semantics=keyword_semantics,
     )
     latency_ms = (time.perf_counter() - started) * 1000
 
@@ -148,6 +157,8 @@ def run_evaluation(
     k: int,
     candidates: int,
     label: str,
+    keyword_weight: float = DEFAULT_KEYWORD_WEIGHT,
+    keyword_semantics: KeywordSemantics = KeywordSemantics.ANY,
 ) -> RunResult:
     settings = get_settings()
     provider = build_embedding_provider(settings)
@@ -165,7 +176,17 @@ def run_evaluation(
         stats = db.corpus_stats(conn, version_id)
 
         results = [
-            evaluate_question(conn, version_id, q, provider, mode=mode, k=k, candidates=candidates)
+            evaluate_question(
+                conn,
+                version_id,
+                q,
+                provider,
+                mode=mode,
+                k=k,
+                candidates=candidates,
+                keyword_weight=keyword_weight,
+                keyword_semantics=keyword_semantics,
+            )
             for q in golden.scoreable
         ]
 
@@ -179,6 +200,8 @@ def run_evaluation(
         "mode": mode.value,
         "k": k,
         "candidates": candidates,
+        "keyword_weight": keyword_weight,
+        "keyword_semantics": keyword_semantics.value,
         "embedding_provider": provider.name,
         "dimensions": provider.dimensions,
         "chunk_config": version.get("chunk_config"),
@@ -229,6 +252,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--mode", default="hybrid", choices=[m.value for m in SearchMode])
     p.add_argument("--k", type=int, default=10)
     p.add_argument("--candidates", type=int, default=50)
+    p.add_argument("--keyword-weight", type=float, default=DEFAULT_KEYWORD_WEIGHT)
+    p.add_argument(
+        "--keyword-semantics", default="any", choices=[s.value for s in KeywordSemantics]
+    )
     p.add_argument("--label", default=None, help="name for this run (default: mode)")
     p.add_argument("--golden-dir", type=Path, default=GOLDEN_DIR)
     p.add_argument("--out", type=Path, default=None, help="explicit output path")
@@ -243,6 +270,8 @@ def main(argv: list[str] | None = None) -> int:
         k=args.k,
         candidates=args.candidates,
         label=label,
+        keyword_weight=args.keyword_weight,
+        keyword_semantics=KeywordSemantics(args.keyword_semantics),
     )
     print(render(run))
 

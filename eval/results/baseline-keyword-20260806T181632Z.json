@@ -1,0 +1,1982 @@
+{
+  "label": "baseline-keyword",
+  "created_at": "2026-08-06T18:16:32+00:00",
+  "config": {
+    "mode": "keyword",
+    "k": 10,
+    "candidates": 50,
+    "embedding_provider": "local:BAAI/bge-small-en-v1.5",
+    "dimensions": 384,
+    "chunk_config": {
+      "dedent": true,
+      "max_chars": 2000,
+      "min_chars": 120,
+      "target_chars": 800,
+      "overlap_chars": 80,
+      "include_heading_context": true
+    },
+    "corpus_fingerprint": "t800-o80-m120-x2000-h1-d1",
+    "corpus": {
+      "chunks": 7364,
+      "documents": 33,
+      "with_section": 7106,
+      "normative": 4180,
+      "mean_chars": 620
+    },
+    "git_sha": "b3613eb",
+    "python": "3.12.3"
+  },
+  "aggregate": {
+    "recall@1": 0.1154,
+    "hit@1": 0.1346,
+    "recall@3": 0.1538,
+    "hit@3": 0.1731,
+    "recall@5": 0.1731,
+    "hit@5": 0.1923,
+    "recall@10": 0.1923,
+    "hit@10": 0.2115,
+    "precision@5": 0.1042,
+    "mrr": 0.1611,
+    "ndcg@10": 0.1762,
+    "p50_latency_ms": 1.9,
+    "questions": 52
+  },
+  "by_type": {
+    "factual": {
+      "recall@1": 0.0909,
+      "hit@1": 0.0909,
+      "recall@3": 0.1818,
+      "hit@3": 0.1818,
+      "recall@5": 0.2273,
+      "hit@5": 0.2273,
+      "recall@10": 0.2727,
+      "hit@10": 0.2727,
+      "precision@5": 0.1295,
+      "mrr": 0.1534,
+      "ndcg@10": 0.2018,
+      "p50_latency_ms": 1.7,
+      "questions": 22
+    },
+    "normative": {
+      "recall@1": 0.2222,
+      "hit@1": 0.2778,
+      "recall@3": 0.2222,
+      "hit@3": 0.2778,
+      "recall@5": 0.2222,
+      "hit@5": 0.2778,
+      "recall@10": 0.2222,
+      "hit@10": 0.2778,
+      "precision@5": 0.1426,
+      "mrr": 0.2778,
+      "ndcg@10": 0.2626,
+      "p50_latency_ms": 1.9,
+      "questions": 18
+    },
+    "cross_document": {
+      "recall@1": 0.0,
+      "hit@1": 0.0,
+      "recall@3": 0.0,
+      "hit@3": 0.0,
+      "recall@5": 0.0,
+      "hit@5": 0.0,
+      "recall@10": 0.0,
+      "hit@10": 0.0,
+      "precision@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0,
+      "p50_latency_ms": 2.2,
+      "questions": 12
+    }
+  },
+  "questions": [
+    {
+      "id": "xdoc-2616-host-current",
+      "type": "cross_document",
+      "question": "RFC 2616 defined the Host header. Which specification defines it now, and what does it require?",
+      "relevant": [
+        "9110:7.2",
+        "9110:1.4"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 4.0,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "xdoc-2616-obsoleted-by",
+      "type": "cross_document",
+      "question": "Which RFCs obsoleted RFC 2616?",
+      "relevant": [
+        "9110:1.4"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 2.7,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "xdoc-http-caching-current",
+      "type": "cross_document",
+      "question": "RFC 2616 section 13 covered HTTP caching. Where is caching specified today?",
+      "relevant": [
+        "9111:1",
+        "9111:2"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 2.4,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "xdoc-tcp-current-spec",
+      "type": "cross_document",
+      "question": "RFC 793 specified TCP. What document specifies TCP now?",
+      "relevant": [
+        "9293:1",
+        "9293:2"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 2.0,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "xdoc-tls-current-version",
+      "type": "cross_document",
+      "question": "RFC 5246 defined TLS 1.2. What is the current TLS specification and how does it differ?",
+      "relevant": [
+        "8446:1.2",
+        "8446:1"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 2.3,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "xdoc-http-methods-current",
+      "type": "cross_document",
+      "question": "RFC 7231 defined HTTP methods and status codes. Which RFC defines them now?",
+      "relevant": [
+        "9110:9",
+        "9110:1.4"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 2.6,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "xdoc-http-message-syntax",
+      "type": "cross_document",
+      "question": "Where is HTTP/1.1 message syntax and connection management specified now that RFC 7230 is obsolete?",
+      "relevant": [
+        "9112:1",
+        "9110:1.4"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 2.0,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "xdoc-expect-continue-current",
+      "type": "cross_document",
+      "question": "Which current RFC describes the Expect header and the 100-continue mechanism?",
+      "relevant": [
+        "9110:10.1.1"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 3.4,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "xdoc-tls12-still-referenced",
+      "type": "cross_document",
+      "question": "Does the current TLS specification still allow TLS 1.2, and what does it say about older versions?",
+      "relevant": [
+        "8446:1.3",
+        "8446:4.1.3"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.9,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "xdoc-dns-over-https-vs-classic",
+      "type": "cross_document",
+      "question": "RFC 1035 defined DNS over UDP and TCP. How is DNS carried over HTTPS?",
+      "relevant": [
+        "8484:4.1",
+        "8484:1"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.8,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "xdoc-http2-host-authority",
+      "type": "cross_document",
+      "question": "In HTTP/2, what replaces the Host header field?",
+      "relevant": [
+        "9110:7.2"
+      ],
+      "retrieved": [
+        "9113:8.3.1"
+      ],
+      "relevance": [
+        false
+      ],
+      "latency_ms": 2.2,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "xdoc-udp-still-current",
+      "type": "cross_document",
+      "question": "Is RFC 768 still the current specification for UDP?",
+      "relevant": [
+        "768",
+        "8085:1"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.6,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-host-header",
+      "type": "factual",
+      "question": "What information does the HTTP Host header field provide?",
+      "relevant": [
+        "9110:7.2"
+      ],
+      "retrieved": [
+        "7230:5.7.1",
+        "9110:7.6.3"
+      ],
+      "relevance": [
+        false,
+        false
+      ],
+      "latency_ms": 1.9,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-417-meaning",
+      "type": "factual",
+      "question": "What does the HTTP 417 status code mean?",
+      "relevant": [
+        "9110:15.5.18"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.6,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-get-method",
+      "type": "factual",
+      "question": "What does the HTTP GET method request?",
+      "relevant": [
+        "9110:9.3.1"
+      ],
+      "retrieved": [
+        "8484:4.1",
+        "8484:4.1",
+        "6455:4.1",
+        "2616:14.35.2",
+        "9110:13",
+        "9110:1.2",
+        "7234:2",
+        "2616:9.4",
+        "7231:6.4",
+        "6455:4.2.2"
+      ],
+      "relevance": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "latency_ms": 2.1,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-date-header",
+      "type": "factual",
+      "question": "What does the HTTP Date header field represent?",
+      "relevant": [
+        "9110:6.6.1"
+      ],
+      "retrieved": [
+        "2616:3.3.1",
+        "2616:14.18",
+        "7231:7.1.1.2",
+        "9110:6.6.1",
+        "2616:14.18",
+        "7231:7.1.1.1",
+        "9111:5.3",
+        "7234:5.3",
+        "9110:10.2.3",
+        "7231:7.1.3"
+      ],
+      "relevance": [
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "latency_ms": 2.1,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.2,
+        "@10": 0.1
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "mrr": 0.25,
+      "ndcg_10": 0.4307
+    },
+    {
+      "id": "fact-must-definition",
+      "type": "factual",
+      "question": "In IETF specifications, what does the keyword MUST mean?",
+      "relevant": [
+        "2119:1"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.6,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-may-definition",
+      "type": "factual",
+      "question": "What does the keyword MAY mean in an RFC?",
+      "relevant": [
+        "2119:5"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 2.6,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-jwt-exp-claim",
+      "type": "factual",
+      "question": "What does the exp claim in a JSON Web Token specify?",
+      "relevant": [
+        "7519:4.1.4"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.7,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-jwt-iss-claim",
+      "type": "factual",
+      "question": "What does the iss claim identify in a JWT?",
+      "relevant": [
+        "7519:4.1.1"
+      ],
+      "retrieved": [
+        "7519:4.1.1"
+      ],
+      "relevance": [
+        true
+      ],
+      "latency_ms": 1.5,
+      "recall": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "precision": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "hit": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "mrr": 1.0,
+      "ndcg_10": 1.0
+    },
+    {
+      "id": "fact-jwt-registered-claims",
+      "type": "factual",
+      "question": "Which claim names are registered in the JWT specification?",
+      "relevant": [
+        "7519:4.1"
+      ],
+      "retrieved": [
+        "7519:5.3",
+        "7519:10.1"
+      ],
+      "relevance": [
+        false,
+        false
+      ],
+      "latency_ms": 1.4,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-oauth-roles",
+      "type": "factual",
+      "question": "What roles does the OAuth 2.0 framework define?",
+      "relevant": [
+        "6749:1.1"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.3,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-oauth-auth-code",
+      "type": "factual",
+      "question": "What is the authorization code grant in OAuth 2.0?",
+      "relevant": [
+        "6749:1.3.1",
+        "6749:4.1"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.3,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-oauth-access-token",
+      "type": "factual",
+      "question": "What is an access token in OAuth 2.0?",
+      "relevant": [
+        "6749:1.4"
+      ],
+      "retrieved": [
+        "6749:4.5"
+      ],
+      "relevance": [
+        false
+      ],
+      "latency_ms": 1.3,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-uri-scheme",
+      "type": "factual",
+      "question": "What is the syntax of a URI scheme component?",
+      "relevant": [
+        "3986:3.1"
+      ],
+      "retrieved": [
+        "3986:1.1.1",
+        "3986:6.2.2.1",
+        "3986:1.1.2",
+        "3986:3",
+        "3986:2.2",
+        "3986:1.2.3",
+        "3986:2.2",
+        "6455:11.1.2",
+        "6455:11.1.1",
+        "9110:4.3"
+      ],
+      "relevance": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "latency_ms": 1.8,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-uri-percent-encoding",
+      "type": "factual",
+      "question": "How does percent-encoding represent a byte in a URI?",
+      "relevant": [
+        "3986:2.1"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.7,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-uri-unreserved",
+      "type": "factual",
+      "question": "Which characters are unreserved in a URI?",
+      "relevant": [
+        "3986:2.3"
+      ],
+      "retrieved": [
+        "9110:11.2",
+        "3986:2.3",
+        "3986:2.5",
+        "3986:2.3",
+        "3986:2.5",
+        "3986:2",
+        "3986:D.2",
+        "3986:6.2.2.2",
+        "3986:2.4",
+        "3986:D.2"
+      ],
+      "relevance": [
+        false,
+        true,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "latency_ms": 1.8,
+      "recall": {
+        "@1": 0.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.3333,
+        "@5": 0.4,
+        "@10": 0.2
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "mrr": 0.5,
+      "ndcg_10": 1.0616
+    },
+    {
+      "id": "fact-uri-authority",
+      "type": "factual",
+      "question": "What components make up the authority part of a URI?",
+      "relevant": [
+        "3986:3.2"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.6,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-dns-size-limits",
+      "type": "factual",
+      "question": "What are the size limits for DNS labels and names?",
+      "relevant": [
+        "1035:2.3.4"
+      ],
+      "retrieved": [
+        "1035:2.3.4"
+      ],
+      "relevance": [
+        true
+      ],
+      "latency_ms": 1.7,
+      "recall": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "precision": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "hit": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "mrr": 1.0,
+      "ndcg_10": 1.0
+    },
+    {
+      "id": "fact-dns-preferred-syntax",
+      "type": "factual",
+      "question": "What is the preferred name syntax for DNS domain names?",
+      "relevant": [
+        "1035:2.3.1"
+      ],
+      "retrieved": [
+        "1034:3.5",
+        "1035:2.3.1",
+        "1035:8",
+        "1035:8"
+      ],
+      "relevance": [
+        false,
+        true,
+        false,
+        false
+      ],
+      "latency_ms": 2.0,
+      "recall": {
+        "@1": 0.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.3333,
+        "@5": 0.25,
+        "@10": 0.25
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "mrr": 0.5,
+      "ndcg_10": 0.6309
+    },
+    {
+      "id": "fact-doh-media-type",
+      "type": "factual",
+      "question": "What media type does DNS over HTTPS use for its messages?",
+      "relevant": [
+        "8484:6",
+        "8484:7.1"
+      ],
+      "retrieved": [
+        "8484:4.1.1",
+        "8484:9"
+      ],
+      "relevance": [
+        false,
+        false
+      ],
+      "latency_ms": 1.9,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-websocket-close-frame",
+      "type": "factual",
+      "question": "What is the purpose of the WebSocket Close frame?",
+      "relevant": [
+        "6455:5.5.1"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.5,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "fact-tcp-header-format",
+      "type": "factual",
+      "question": "What fields does the TCP header contain?",
+      "relevant": [
+        "9293:3.1"
+      ],
+      "retrieved": [
+        "9113:8.5",
+        "8484:8.2",
+        "793:3.9",
+        "9293:3.10",
+        "793:None",
+        "793:None",
+        "8200:8.1",
+        "9293:3.1"
+      ],
+      "relevance": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ],
+      "latency_ms": 1.9,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 1.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.125
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 1.0
+      },
+      "mrr": 0.125,
+      "ndcg_10": 0.3155
+    },
+    {
+      "id": "fact-tls13-negotiation",
+      "type": "factual",
+      "question": "How does a TLS 1.3 client offer cryptographic options?",
+      "relevant": [
+        "8446:4.1.1"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.8,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "norm-should-definition",
+      "type": "normative",
+      "question": "What does SHOULD mean, and when may an implementation ignore it?",
+      "relevant": [
+        "2119:3"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.6,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "norm-must-not-definition",
+      "type": "normative",
+      "question": "What does MUST NOT mean in an IETF specification?",
+      "relevant": [
+        "2119:2"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.6,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "norm-should-not-definition",
+      "type": "normative",
+      "question": "What does SHOULD NOT mean in an RFC?",
+      "relevant": [
+        "2119:4"
+      ],
+      "retrieved": [
+        "6455:11.8",
+        "5321:2.1",
+        "6455:11.7",
+        "768:None",
+        "7231:B",
+        "7230:A.1.3",
+        "8174:1",
+        "2616:19.5.1",
+        "5321:2.2.1",
+        "8174:2"
+      ],
+      "relevance": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "latency_ms": 1.8,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "norm-2119-uppercase",
+      "type": "normative",
+      "question": "When do RFC 2119 keywords carry their special normative meaning?",
+      "relevant": [
+        "8174:2",
+        "2119:6"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 2.9,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "norm-websocket-masking",
+      "type": "normative",
+      "question": "Must a WebSocket client mask the frames it sends to the server?",
+      "relevant": [
+        "6455:5.3",
+        "6455:5.1"
+      ],
+      "retrieved": [
+        "6455:5.1"
+      ],
+      "relevance": [
+        true
+      ],
+      "latency_ms": 2.0,
+      "recall": {
+        "@1": 0.5,
+        "@3": 0.5,
+        "@5": 0.5,
+        "@10": 0.5
+      },
+      "precision": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "hit": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "mrr": 1.0,
+      "ndcg_10": 0.6131
+    },
+    {
+      "id": "norm-websocket-server-no-mask",
+      "type": "normative",
+      "question": "Is a WebSocket server allowed to mask the frames it sends?",
+      "relevant": [
+        "6455:5.1"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.7,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "norm-http-host-required",
+      "type": "normative",
+      "question": "What must a client do about the Host header field when sending an HTTP/1.1 request?",
+      "relevant": [
+        "9110:7.2"
+      ],
+      "retrieved": [
+        "7230:5.4",
+        "9112:3.2",
+        "7230:5.4",
+        "9112:3.2.2",
+        "2616:5.1.2",
+        "9112:3.2.2",
+        "9110:7.8",
+        "7234:5.4",
+        "9110:10.1.1",
+        "7231:5.1.1"
+      ],
+      "relevance": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "latency_ms": 2.5,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "norm-http-server-reject-missing-host",
+      "type": "normative",
+      "question": "How must a server respond to an HTTP/1.1 request that lacks a Host header?",
+      "relevant": [
+        "9112:3.2",
+        "9110:7.2"
+      ],
+      "retrieved": [
+        "9112:3.2",
+        "2616:14.23",
+        "7230:5.4"
+      ],
+      "relevance": [
+        true,
+        false,
+        false
+      ],
+      "latency_ms": 2.2,
+      "recall": {
+        "@1": 0.5,
+        "@3": 0.5,
+        "@5": 0.5,
+        "@10": 0.5
+      },
+      "precision": {
+        "@1": 1.0,
+        "@3": 0.3333,
+        "@5": 0.3333,
+        "@10": 0.3333
+      },
+      "hit": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "mrr": 1.0,
+      "ndcg_10": 0.6131
+    },
+    {
+      "id": "norm-cache-must-not-store",
+      "type": "normative",
+      "question": "When must a cache not store a response?",
+      "relevant": [
+        "9111:3"
+      ],
+      "retrieved": [
+        "9111:3",
+        "7234:3",
+        "9111:3.4",
+        "2616:14.9.2",
+        "7234:4",
+        "7234:3.3",
+        "7234:5.2.2.3",
+        "9111:5.2.2.7",
+        "2616:13.5.3",
+        "9111:5.2.2.5"
+      ],
+      "relevance": [
+        true,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "latency_ms": 2.5,
+      "recall": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "precision": {
+        "@1": 1.0,
+        "@3": 0.6667,
+        "@5": 0.4,
+        "@10": 0.2
+      },
+      "hit": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "mrr": 1.0,
+      "ndcg_10": 1.5
+    },
+    {
+      "id": "norm-cache-no-store",
+      "type": "normative",
+      "question": "What does the no-store cache directive require?",
+      "relevant": [
+        "9111:5.2.2.5",
+        "9111:5.2.1.5"
+      ],
+      "retrieved": [
+        "9111:5.2.2.3",
+        "2616:13.1.1"
+      ],
+      "relevance": [
+        false,
+        false
+      ],
+      "latency_ms": 2.0,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "norm-cache-heuristic-freshness",
+      "type": "normative",
+      "question": "When may a cache calculate heuristic freshness?",
+      "relevant": [
+        "9111:4.2.2"
+      ],
+      "retrieved": [
+        "9111:4.2.2",
+        "7234:4.2.2",
+        "2616:13.2.4"
+      ],
+      "relevance": [
+        true,
+        false,
+        false
+      ],
+      "latency_ms": 1.8,
+      "recall": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "precision": {
+        "@1": 1.0,
+        "@3": 0.3333,
+        "@5": 0.3333,
+        "@10": 0.3333
+      },
+      "hit": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "mrr": 1.0,
+      "ndcg_10": 1.0
+    },
+    {
+      "id": "norm-tls13-downgrade",
+      "type": "normative",
+      "question": "What must a TLS 1.3 client do if it detects the downgrade sentinel in ServerHello random?",
+      "relevant": [
+        "8446:4.1.3"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 2.2,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "norm-tls13-certificate-verify",
+      "type": "normative",
+      "question": "What must a TLS 1.3 endpoint do when certificate verification fails?",
+      "relevant": [
+        "8446:4.4.3"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.9,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "norm-smtp-line-length",
+      "type": "normative",
+      "question": "What limits does SMTP place on the length of a text line?",
+      "relevant": [
+        "5321:4.5.3.1"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 1.7,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "norm-smtp-crlf",
+      "type": "normative",
+      "question": "How must SMTP lines be terminated?",
+      "relevant": [
+        "5321:2.3.8"
+      ],
+      "retrieved": [
+        "5321:2.3.8",
+        "5321:4.1.1.1"
+      ],
+      "relevance": [
+        true,
+        false
+      ],
+      "latency_ms": 1.8,
+      "recall": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "precision": {
+        "@1": 1.0,
+        "@3": 0.5,
+        "@5": 0.5,
+        "@10": 0.5
+      },
+      "hit": {
+        "@1": 1.0,
+        "@3": 1.0,
+        "@5": 1.0,
+        "@10": 1.0
+      },
+      "mrr": 1.0,
+      "ndcg_10": 1.0
+    },
+    {
+      "id": "norm-tcp-reset-processing",
+      "type": "normative",
+      "question": "What must a TCP implementation do when it receives a RST segment?",
+      "relevant": [
+        "9293:3.5.3",
+        "9293:3.5.2"
+      ],
+      "retrieved": [
+        "9293:3.4",
+        "9293:3.10.7.4",
+        "9293:3.1"
+      ],
+      "relevance": [
+        false,
+        false,
+        false
+      ],
+      "latency_ms": 2.2,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "norm-oauth-tls-required",
+      "type": "normative",
+      "question": "When must an OAuth 2.0 authorization server require TLS?",
+      "relevant": [
+        "6749:3.1",
+        "6749:3.2"
+      ],
+      "retrieved": [],
+      "relevance": [],
+      "latency_ms": 2.0,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    },
+    {
+      "id": "norm-jwt-validate",
+      "type": "normative",
+      "question": "What must an implementation do when validating a JWT?",
+      "relevant": [
+        "7519:7.2"
+      ],
+      "retrieved": [
+        "7519:4"
+      ],
+      "relevance": [
+        false
+      ],
+      "latency_ms": 1.6,
+      "recall": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "precision": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "hit": {
+        "@1": 0.0,
+        "@3": 0.0,
+        "@5": 0.0,
+        "@10": 0.0
+      },
+      "mrr": 0.0,
+      "ndcg_10": 0.0
+    }
+  ]
+}

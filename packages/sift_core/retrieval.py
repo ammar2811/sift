@@ -25,6 +25,17 @@ import psycopg
 from psycopg import sql
 
 RRF_K = 60
+
+# Textbook RRF weights both retrievers equally. Measured on this corpus, that is the
+# single worst configuration tried - equal weighting scores below dense alone on every
+# metric, because keyword recall@5 is 0.29 against dense's 0.77 and the weaker ranking
+# drags mediocre chunks up.
+#
+# 0.2 was chosen from `python -m eval.sweep keyword-weight` because it beats or ties
+# dense-only on every metric rather than trading one for another. Keyword still earns
+# its place: it is what reliably finds exact tokens such as "417" or "CRLF" that
+# embeddings blur.
+DEFAULT_KEYWORD_WEIGHT = 0.2
 # Candidates pulled from each retriever before fusion. Wider than the final k so the
 # reranking stage has genuine choice; narrower than the corpus so it stays fast.
 DEFAULT_CANDIDATES = 50
@@ -34,6 +45,32 @@ class SearchMode(StrEnum):
     DENSE = "dense"
     KEYWORD = "keyword"
     HYBRID = "hybrid"
+
+
+class KeywordSemantics(StrEnum):
+    """How a natural-language question becomes a tsquery.
+
+    ``ALL`` uses ``websearch_to_tsquery``, which joins every term with AND. That suits
+    a search box where the user types keywords, but it is close to useless for a
+    question: "What does the HTTP Host header field provide?" becomes
+    ``http & host & header & field & provid`` and matches 3 chunks out of 7,364,
+    because one chunk rarely contains every term.
+
+    ``ANY`` ORs the lexemes instead, admitting candidates broadly and letting
+    ``ts_rank_cd`` do the ranking - which is the job it is designed for.
+    """
+
+    ALL = "all"
+    ANY = "any"
+
+
+# NULL from an empty query makes `tsv @@ query` NULL, so no rows match and nothing
+# errors - safer than letting to_tsquery('') raise a syntax error.
+_TSQUERY_ANY = (
+    "to_tsquery('english', nullif(array_to_string("
+    "tsvector_to_array(to_tsvector('english', %s)), ' | '), ''))"
+)
+_TSQUERY_ALL = "websearch_to_tsquery('english', %s)"
 
 
 @dataclass(frozen=True, slots=True)
@@ -116,6 +153,9 @@ def search(
     candidates: int = DEFAULT_CANDIDATES,
     filters: SearchFilters | None = None,
     rrf_k: int = RRF_K,
+    keyword_semantics: KeywordSemantics = KeywordSemantics.ANY,
+    dense_weight: float = 1.0,
+    keyword_weight: float = DEFAULT_KEYWORD_WEIGHT,
 ) -> list[Hit]:
     """Retrieve the top ``k`` chunks.
 
@@ -164,13 +204,18 @@ def search(
                            ts_rank_cd(c.tsv, q.query) AS score
                     FROM chunks c
                     JOIN documents d ON d.number = c.rfc_number
-                    CROSS JOIN websearch_to_tsquery('english', %s) AS q(query)
+                    CROSS JOIN {tsquery} AS q(query)
                     WHERE {where} AND c.tsv @@ q.query
                     ORDER BY ts_rank_cd(c.tsv, q.query) DESC
                     LIMIT %s
                 )
                 """
-            ).format(where=where)
+            ).format(
+                where=where,
+                tsquery=sql.SQL(
+                    _TSQUERY_ANY if keyword_semantics is KeywordSemantics.ANY else _TSQUERY_ALL
+                ),
+            )
         )
         params += [query, version_id, *filter_params, candidates]
 
@@ -179,14 +224,14 @@ def search(
             """
             fused AS (
                 SELECT COALESCE(dense.id, kw.id) AS id,
-                       COALESCE(1.0 / (%s + dense.rank), 0)
-                     + COALESCE(1.0 / (%s + kw.rank), 0) AS score,
+                       COALESCE(%s / (%s + dense.rank), 0)
+                     + COALESCE(%s / (%s + kw.rank), 0) AS score,
                        dense.rank AS dense_rank, kw.rank AS kw_rank
                 FROM dense FULL OUTER JOIN kw ON dense.id = kw.id
             )
             """
         )
-        params += [rrf_k, rrf_k]
+        params += [dense_weight, rrf_k, keyword_weight, rrf_k]
     elif mode is SearchMode.DENSE:
         fusion = sql.SQL(
             "fused AS (SELECT id, similarity AS score, rank AS dense_rank,"
