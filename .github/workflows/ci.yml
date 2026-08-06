@@ -1,0 +1,138 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "22"
+
+jobs:
+  python:
+    name: Python — lint, types, tests
+    runs-on: ubuntu-latest
+
+    # Retrieval behaviour (RRF fusion, tsvector weighting, halfvec distance) is
+    # database behaviour. Mocking it would test the mock, so CI runs a real Postgres
+    # with pgvector and the integration tests run for real.
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.0-pg16
+        env:
+          POSTGRES_USER: sift
+          POSTGRES_PASSWORD: sift
+          POSTGRES_DB: sift
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U sift -d sift"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]" fastembed
+
+      - name: Lint
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Type check
+        run: mypy packages apps eval
+
+      - name: Cache the RFC corpus
+        id: corpus
+        uses: actions/cache@v4
+        with:
+          path: data
+          # The corpus is immutable once fetched; the key only changes when the
+          # fetcher does. This keeps CI from re-downloading from the RFC Editor.
+          key: rfc-corpus-${{ hashFiles('apps/worker/fetch_corpus.py') }}
+
+      - name: Fetch a corpus slice
+        if: steps.corpus.outputs.cache-hit != 'true'
+        run: |
+          python -m apps.worker.fetch_corpus --rfc 9110 2616 9293 9112 9111 2119
+
+      - name: Validate the golden set
+        run: python -m eval.validate_golden
+
+      - name: Test
+        env:
+          SIFT_DATABASE_URL: postgresql://sift:sift@localhost:5432/sift
+          SIFT_EMBEDDING_PROVIDER: local
+        run: pytest packages apps eval -q
+
+  web:
+    name: Web — lint, types, tests, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      # jsx-a11y runs at --max-warnings 0, so an accessibility regression fails here
+      # rather than surviving to review.
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  images:
+    name: Container images build
+    runs-on: ubuntu-latest
+    needs: [python, web]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Build only. Publishing happens in deploy.yml so a pull request can prove the
+      # images build without gaining permission to push them.
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/web
+          file: apps/web/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

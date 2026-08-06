@@ -1,0 +1,113 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+# Federated credentials rather than a stored service-principal secret: GitHub mints a
+# short-lived token per run, so there is no long-lived credential to leak or rotate.
+permissions:
+  id-token: write
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  RESOURCE_GROUP: sift-rg
+
+jobs:
+  deploy:
+    name: Build and deploy to Container Apps
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Images are tagged with the commit SHA, never only :latest. A revision has to
+      # name an immutable image for a rollback to mean anything.
+      - name: Build and push the API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}/api:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ github.repository }}/api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push the web image
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/web
+          file: apps/web/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}/web:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ github.repository }}/web:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy the API revision
+        run: |
+          az containerapp update \
+            --name sift-api \
+            --resource-group "$RESOURCE_GROUP" \
+            --image "$REGISTRY/${{ github.repository }}/api:${{ github.sha }}"
+
+      - name: Deploy the web revision
+        run: |
+          az containerapp update \
+            --name sift-web \
+            --resource-group "$RESOURCE_GROUP" \
+            --image "$REGISTRY/${{ github.repository }}/web:${{ github.sha }}"
+
+      - name: Deploy the ingestion job
+        run: |
+          az containerapp job update \
+            --name sift-ingest \
+            --resource-group "$RESOURCE_GROUP" \
+            --image "$REGISTRY/${{ github.repository }}/api:${{ github.sha }}"
+
+      # A deploy that reports success while the app is broken is worse than a failed
+      # one, so the run only passes if the new revision actually answers.
+      - name: Verify readiness
+        run: |
+          url="https://$(az containerapp show --name sift-api \
+            --resource-group "$RESOURCE_GROUP" \
+            --query properties.configuration.ingress.fqdn -o tsv)"
+
+          echo "probing $url/health"
+          for attempt in $(seq 1 30); do
+            if curl -fsS --max-time 10 "$url/health" > /dev/null; then
+              echo "healthy after ${attempt} attempt(s)"
+              curl -fsS "$url/ready" | head -c 2000
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::the new revision never became healthy"
+          exit 1

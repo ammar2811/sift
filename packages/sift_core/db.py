@@ -72,13 +72,22 @@ class VectorDimensionMismatch(RuntimeError):
 
 
 def existing_vector_type(conn: psycopg.Connection[Any]) -> str | None:
-    """The declared type of ``chunks.embedding``, or None when the table is absent."""
+    """The declared type of ``chunks.embedding`` in the *current* schema.
+
+    Deliberately not ``to_regclass('chunks')``: that resolves through ``search_path``,
+    so migrating a fresh schema would inspect some other schema's table and report a
+    dimension conflict that does not exist. Returns None when this schema has no
+    chunks table yet.
+    """
     with conn.cursor() as cur:
         cur.execute(
             """
             SELECT format_type(a.atttypid, a.atttypmod) AS type_name
             FROM pg_attribute a
-            WHERE a.attrelid = to_regclass('chunks')
+            JOIN pg_class c ON c.oid = a.attrelid
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE c.relname = 'chunks'
+              AND n.nspname = current_schema()
               AND a.attname = 'embedding'
               AND a.attnum > 0
             """
@@ -310,9 +319,7 @@ def ingested_rfc_numbers(conn: psycopg.Connection[Any], version_id: int) -> set[
     step in the pipeline. This lets an interrupted run resume where it stopped.
     """
     with conn.cursor() as cur:
-        cur.execute(
-            "SELECT DISTINCT rfc_number FROM chunks WHERE version_id = %s", (version_id,)
-        )
+        cur.execute("SELECT DISTINCT rfc_number FROM chunks WHERE version_id = %s", (version_id,))
         return {int(row["rfc_number"]) for row in cur.fetchall()}
 
 
