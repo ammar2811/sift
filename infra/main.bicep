@@ -7,8 +7,17 @@
 
 targetScope = 'resourceGroup'
 
-@description('Deployment region. East US and South Central US have the widest Azure OpenAI model availability.')
-param location string = 'eastus'
+// Canada Central, not East US. PostgreSQL Flexible Server reports "Provisioning is
+// restricted in this region" for East US on this subscription - a restriction Azure
+// applies to student and free subscriptions - and East US 2 and West US 2 are
+// restricted too. Canada Central offers Burstable B1ms and Postgres 16, and is the
+// closest region to Toronto, so it wins on latency as well as availability.
+//
+// The Azure OpenAI account stays in East US, where the model quota lives. That costs
+// one cross-region API call per request, against a per-query cost if the database
+// were remote instead.
+@description('Deployment region for the application stack.')
+param location string = 'canadacentral'
 
 @description('Prefix for every resource name.')
 param namePrefix string = 'sift'
