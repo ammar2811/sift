@@ -30,7 +30,10 @@ def _has_corpus() -> bool:
 
 pytestmark = pytest.mark.skipif(
     not _has_corpus(),
-    reason="needs an ingested, activated corpus (python -m apps.worker.ingest --sweep-corpus --activate)",
+    reason=(
+        "needs an ingested, activated corpus: "
+        "python -m apps.worker.ingest --sweep-corpus --activate"
+    ),
 )
 
 
