@@ -47,12 +47,24 @@ CREATE TABLE IF NOT EXISTS corpus_versions (
     fingerprint     text        NOT NULL,
     embedding_model text        NOT NULL,
     dimensions      integer     NOT NULL,
+    -- Which document set was ingested ('sweep', 'full', ...). Part of the key
+    -- because a metric is only comparable against the same documents: without it,
+    -- ingesting the full corpus under the same chunking config would silently merge
+    -- into the sweep corpus's version and invalidate every result recorded against it.
+    scope           text        NOT NULL DEFAULT 'default',
     chunk_config    jsonb       NOT NULL,
     is_active       boolean     NOT NULL DEFAULT false,
     created_at      timestamptz NOT NULL DEFAULT now(),
-    notes           text,
-    UNIQUE (fingerprint, embedding_model, dimensions)
+    notes           text
 );
+
+-- Added defensively so an existing database picks up the column rather than needing a
+-- rebuild; CREATE TABLE IF NOT EXISTS silently skips a table that already exists.
+ALTER TABLE corpus_versions ADD COLUMN IF NOT EXISTS scope text NOT NULL DEFAULT 'default';
+ALTER TABLE corpus_versions
+    DROP CONSTRAINT IF EXISTS corpus_versions_fingerprint_embedding_model_dimensions_key;
+CREATE UNIQUE INDEX IF NOT EXISTS corpus_versions_identity
+    ON corpus_versions (fingerprint, embedding_model, dimensions, scope);
 
 -- Only one configuration serves queries at a time.
 CREATE UNIQUE INDEX IF NOT EXISTS corpus_versions_one_active

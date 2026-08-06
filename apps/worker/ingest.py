@@ -134,6 +134,15 @@ def ingest_document(
     return written, elapsed
 
 
+def corpus_scope(args: argparse.Namespace) -> str:
+    """Name the document set, so results can never be compared across different ones."""
+    if args.rfc:
+        return "adhoc"
+    if args.sweep_corpus:
+        return "sweep"
+    return f"limit{args.limit}" if args.limit else "full"
+
+
 def select_documents(metas: dict[int, RfcMeta], args: argparse.Namespace) -> list[RfcMeta]:
     if args.rfc:
         return [metas[n] for n in args.rfc if n in metas]
@@ -158,8 +167,9 @@ def run(args: argparse.Namespace) -> IngestStats:
         settings = settings.model_copy(update={"local_embedding_threads": args.threads})
     provider = build_embedding_provider(settings)
     logger.info(
-        "ingesting %d documents | provider=%s dims=%d | %s",
+        "ingesting %d documents | scope=%s provider=%s dims=%d | %s",
         len(targets),
+        corpus_scope(args),
         provider.name,
         provider.dimensions,
         cfg.fingerprint,
@@ -174,6 +184,7 @@ def run(args: argparse.Namespace) -> IngestStats:
             cfg,
             embedding_model=provider.name,
             dimensions=provider.dimensions,
+            scope=corpus_scope(args),
             notes=args.notes,
         )
         if args.activate:

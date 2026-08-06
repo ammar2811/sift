@@ -196,20 +196,32 @@ def ensure_corpus_version(
     *,
     embedding_model: str = DEFAULT_EMBEDDING_MODEL,
     dimensions: int = DEFAULT_DIMENSIONS,
+    scope: str = "default",
     notes: str | None = None,
 ) -> int:
-    """Get or create the corpus version row for this configuration."""
+    """Get or create the corpus version row for this configuration.
+
+    ``scope`` names the document set. It is part of the identity because a number is
+    only comparable against the same documents.
+    """
     with conn.cursor() as cur:
         cur.execute(
             """
             INSERT INTO corpus_versions
-                (fingerprint, embedding_model, dimensions, chunk_config, notes)
-            VALUES (%s, %s, %s, %s, %s)
-            ON CONFLICT (fingerprint, embedding_model, dimensions)
+                (fingerprint, embedding_model, dimensions, scope, chunk_config, notes)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT (fingerprint, embedding_model, dimensions, scope)
                 DO UPDATE SET notes = COALESCE(EXCLUDED.notes, corpus_versions.notes)
             RETURNING id
             """,
-            (cfg.fingerprint, embedding_model, dimensions, json.dumps(asdict(cfg)), notes),
+            (
+                cfg.fingerprint,
+                embedding_model,
+                dimensions,
+                scope,
+                json.dumps(asdict(cfg)),
+                notes,
+            ),
         )
         row = cur.fetchone()
     conn.commit()
