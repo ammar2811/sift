@@ -199,7 +199,9 @@ class CachedEmbeddings:
 def build_embedding_provider(settings: Settings | None = None) -> EmbeddingProvider:
     s = settings or get_settings()
     if s.embedding_provider is EmbeddingProviderName.LOCAL:
-        return LocalEmbeddings(s.local_embedding_model)
+        return LocalEmbeddings(
+            s.local_embedding_model, threads=s.local_embedding_threads or None
+        )
     return AzureOpenAIEmbeddings(s)
 
 

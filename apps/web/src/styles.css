@@ -1,0 +1,509 @@
+/*
+ * Sift styling.
+ *
+ * The visual language borrows from the source material: RFCs are monospaced,
+ * numbered, and dense, so identifiers (RFC numbers, section numbers, scores) are set
+ * in mono while prose stays in a humanist sans. That contrast does the work of
+ * separating "what this is" from "what it says" without extra chrome.
+ *
+ * Both themes are first-class. Colours are declared once as tokens and the dark
+ * variant overrides the tokens, so no component carries theme-specific rules.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  --bg: #fbfbfa;
+  --surface: #ffffff;
+  --surface-sunken: #f4f4f2;
+  --border: #e2e2dd;
+  --border-strong: #c9c9c1;
+
+  --text: #1a1a18;
+  --text-muted: #5c5c56;
+  --text-faint: #85857c;
+
+  /* A single accent, kept dark enough for AA contrast on the light surface. */
+  --accent: #7a4b1e;
+  --accent-hover: #5d3915;
+  --accent-surface: #f5ede4;
+
+  --warn-text: #7a4a00;
+  --warn-surface: #fdf3e0;
+  --warn-border: #e8d3a8;
+
+  --focus: #1a6ee0;
+
+  --radius: 6px;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+
+  --measure: 68ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16161a;
+    --surface: #1e1e23;
+    --surface-sunken: #26262c;
+    --border: #32323a;
+    --border-strong: #45454f;
+
+    --text: #ececeb;
+    --text-muted: #a8a8a2;
+    --text-faint: #85857e;
+
+    --accent: #e0a86a;
+    --accent-hover: #f0bd85;
+    --accent-surface: #2c2419;
+
+    --warn-text: #e8bd72;
+    --warn-surface: #2b2417;
+    --warn-border: #4a3d22;
+
+    --focus: #6aa8ff;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* One visible, consistent focus treatment everywhere. Never remove it without
+   replacing it - keyboard users lose their place entirely. */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Skip link: the first tab stop, hidden until focused. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.app {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 5rem;
+}
+
+/* ---------- header ---------- */
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.wordmark {
+  font-size: 1.5rem;
+  font-weight: 620;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.wordmark span {
+  color: var(--accent);
+}
+
+.tagline {
+  margin: 0.15rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.corpus-badge {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.corpus-badge .dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 0.4rem;
+  background: var(--text-faint);
+}
+.corpus-badge .dot.ready {
+  background: #2f9e5f;
+}
+.corpus-badge .dot.down {
+  background: #d1453b;
+}
+
+/* ---------- search ---------- */
+
+.search {
+  margin: 1.75rem 0 0;
+}
+
+.search-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: stretch;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  padding: 0.7rem 0.9rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.search-input::placeholder {
+  color: var(--text-faint);
+}
+
+.btn {
+  font: inherit;
+  font-weight: 550;
+  padding: 0.7rem 1.2rem;
+  color: #fff;
+  background: var(--accent);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (prefers-color-scheme: dark) {
+  .btn {
+    color: #1a1a18;
+  }
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin-top: 0.9rem;
+  font-size: 0.875rem;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.control-group > .group-label {
+  color: var(--text-muted);
+}
+
+/* Segmented control built from real radios so arrow keys and screen readers work. */
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.segmented label {
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+.segmented label:last-child {
+  border-right: 0;
+}
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.segmented input:checked + span {
+  color: var(--text);
+  font-weight: 600;
+}
+.segmented label:has(input:checked) {
+  background: var(--accent-surface);
+}
+.segmented label:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+/* ---------- results ---------- */
+
+.status-line {
+  margin: 1.75rem 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.result {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+}
+
+.result:focus-within {
+  border-color: var(--border-strong);
+}
+
+.result-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.citation-link {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+.citation-link:hover {
+  text-decoration: underline;
+}
+
+.result-title {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0.15rem 0 0;
+}
+
+.result-body {
+  margin: 0.7rem 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  font-size: 0.92rem;
+  max-width: var(--measure);
+}
+
+/* RFC bodies contain ASCII diagrams and ABNF; those need mono and horizontal scroll
+   rather than wrapping, which would destroy their alignment. */
+.result-body.preformatted {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre;
+  background: var(--surface-sunken);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.8rem;
+  max-width: none;
+}
+
+.badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.badge.obsolete {
+  color: var(--warn-text);
+  background: var(--warn-surface);
+  border-color: var(--warn-border);
+}
+
+.supersession {
+  margin-top: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.83rem;
+  color: var(--warn-text);
+  background: var(--warn-surface);
+  border: 1px solid var(--warn-border);
+  border-radius: var(--radius);
+}
+
+.supersession a {
+  color: inherit;
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+/* ---------- retrieval inspector ---------- */
+
+.inspector {
+  margin-top: 0.8rem;
+  border-top: 1px dashed var(--border);
+  padding-top: 0.6rem;
+}
+
+.inspector summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+
+.inspector summary::marker {
+  color: var(--text-faint);
+}
+
+.rank-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 1rem;
+  margin: 0.55rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.rank-grid dt {
+  color: var(--text-faint);
+}
+.rank-grid dd {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* ---------- states ---------- */
+
+.empty,
+.error {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.error {
+  color: var(--warn-text);
+  background: var(--warn-surface);
+  border-color: var(--warn-border);
+}
+
+.examples {
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.example-btn {
+  font: inherit;
+  font-size: 0.83rem;
+  padding: 0.3rem 0.7rem;
+  color: var(--text-muted);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  text-align: left;
+}
+.example-btn:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.skeleton {
+  height: 5.5rem;
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--surface) 0%, var(--surface-sunken) 50%, var(--surface) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border: 1px solid var(--border);
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

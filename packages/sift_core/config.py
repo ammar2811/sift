@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     anthropic_model: str = "claude-sonnet-5"
 
     local_embedding_model: str = "BAAI/bge-small-en-v1.5"
+    # 0 lets onnxruntime use every core. Local embedding saturates the CPU, so lower
+    # this when the machine has to do anything else at the same time.
+    local_embedding_threads: int = 0
 
     # text-embedding-3-* are Matryoshka models: a shortened vector keeps most of its
     # quality, which is what lets a 129k-chunk index fit a B1ms. Ignored by providers

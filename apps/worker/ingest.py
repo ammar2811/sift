@@ -154,6 +154,8 @@ def run(args: argparse.Namespace) -> IngestStats:
         overlap_chars=args.overlap_chars,
         include_heading_context=not args.no_heading_context,
     )
+    if args.threads:
+        settings = settings.model_copy(update={"local_embedding_threads": args.threads})
     provider = build_embedding_provider(settings)
     logger.info(
         "ingesting %d documents | provider=%s dims=%d | %s",
@@ -176,6 +178,15 @@ def run(args: argparse.Namespace) -> IngestStats:
         )
         if args.activate:
             db.activate_corpus_version(conn, version_id)
+
+        if args.resume:
+            done = db.ingested_rfc_numbers(conn, version_id)
+            before = len(targets)
+            targets = [m for m in targets if m.number not in done]
+            stats.skipped += before - len(targets)
+            logger.info(
+                "resuming: %d of %d documents already ingested", before - len(targets), before
+            )
 
         consecutive_failures = 0
         for i, meta in enumerate(targets, start=1):
@@ -231,6 +242,17 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--overlap-chars", type=int, default=80)
     p.add_argument("--no-heading-context", action="store_true")
     p.add_argument("--build-index", action="store_true", help="create HNSW after loading")
+    p.add_argument(
+        "--resume",
+        action="store_true",
+        help="skip documents already ingested under this corpus version",
+    )
+    p.add_argument(
+        "--threads",
+        type=int,
+        default=0,
+        help="embedding threads (0 = library default; lower this to leave CPU free)",
+    )
     p.add_argument(
         "--reset-vectors",
         action="store_true",

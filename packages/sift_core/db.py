@@ -303,6 +303,19 @@ def create_vector_index(
     conn.commit()
 
 
+def ingested_rfc_numbers(conn: psycopg.Connection[Any], version_id: int) -> set[int]:
+    """RFCs that already have chunks under this corpus version.
+
+    Ingestion is idempotent, but redoing finished documents wastes the most expensive
+    step in the pipeline. This lets an interrupted run resume where it stopped.
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT DISTINCT rfc_number FROM chunks WHERE version_id = %s", (version_id,)
+        )
+        return {int(row["rfc_number"]) for row in cur.fetchall()}
+
+
 def corpus_stats(conn: psycopg.Connection[Any], version_id: int) -> dict[str, Any]:
     with conn.cursor() as cur:
         cur.execute(
