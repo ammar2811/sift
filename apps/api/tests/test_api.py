@@ -7,6 +7,7 @@ exercised the way a client would hit them.
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterator
 
 import psycopg
@@ -16,25 +17,38 @@ from fastapi.testclient import TestClient
 from packages.sift_core import db
 
 
-def _has_corpus() -> bool:
+def _corpus_state() -> tuple[bool, int | None]:
+    """(has chunks, embedding width) for the active corpus version."""
     try:
-        with psycopg.connect(db.dsn(), connect_timeout=2) as conn:
-            conn.row_factory = psycopg.rows.dict_row  # type: ignore[assignment]
+        with psycopg.connect(
+            db.dsn(), connect_timeout=2, row_factory=psycopg.rows.dict_row
+        ) as conn:
             version_id = db.active_version_id(conn)
             if version_id is None:
-                return False
-            return bool(db.corpus_stats(conn, version_id).get("chunks"))
+                return False, None
+            has_chunks = bool(db.corpus_stats(conn, version_id).get("chunks"))
+            version = db.corpus_version(conn, version_id)
+            return has_chunks, int(version["dimensions"]) if version else None
     except psycopg.Error:
-        return False
+        return False, None
 
+
+_HAS_CORPUS, _CORPUS_DIMENSIONS = _corpus_state()
 
 pytestmark = pytest.mark.skipif(
-    not _has_corpus(),
+    not _HAS_CORPUS,
     reason=(
         "needs an ingested, activated corpus: "
         "python -m apps.worker.ingest --sweep-corpus --activate"
     ),
 )
+
+# The API must query with the same embedding width the corpus was built at, so these
+# tests select the provider from the corpus rather than assuming a default. Doing it
+# by environment keeps the application code free of test-only branches.
+if _CORPUS_DIMENSIONS is not None and _CORPUS_DIMENSIONS != 384:
+    os.environ.setdefault("SIFT_EMBEDDING_PROVIDER", "azure_openai")
+    os.environ.setdefault("SIFT_EMBEDDING_DIMENSIONS", str(_CORPUS_DIMENSIONS))
 
 
 @pytest.fixture(scope="module")
@@ -45,6 +59,31 @@ def client() -> Iterator[TestClient]:
     # and the connection pool are built.
     with TestClient(app) as test_client:
         yield test_client
+
+
+def test_readiness_rejects_a_provider_that_does_not_match_the_corpus(
+    client: TestClient,
+) -> None:
+    """A width mismatch must be one clear readiness failure, not an SQL error per query.
+
+    pgvector refuses to compare vectors of different widths, so an API replica running
+    a different embedding provider than the one used for ingestion cannot answer
+    anything - and without this check it fails opaquely on every request instead.
+    """
+    body = client.get("/ready").json()
+    embeddings = next(d for d in body["dependencies"] if d["name"] == "embeddings")
+
+    with psycopg.connect(db.dsn(), row_factory=psycopg.rows.dict_row) as conn:
+        version_id = db.active_version_id(conn)
+        assert version_id is not None
+        version = db.corpus_version(conn, version_id)
+    assert version is not None
+
+    if embeddings["ok"]:
+        assert body["ready"] is True
+    else:
+        assert str(version["dimensions"]) in (embeddings["detail"] or "")
+        assert body["ready"] is False
 
 
 def test_health_is_dependency_free(client: TestClient) -> None:

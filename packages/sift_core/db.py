@@ -312,6 +312,13 @@ def create_vector_index(
     conn.commit()
 
 
+def corpus_version(conn: psycopg.Connection[Any], version_id: int) -> dict[str, Any] | None:
+    with conn.cursor() as cur:
+        cur.execute("SELECT * FROM corpus_versions WHERE id = %s", (version_id,))
+        row = cur.fetchone()
+    return dict(row) if row else None
+
+
 def ingested_rfc_numbers(conn: psycopg.Connection[Any], version_id: int) -> set[int]:
     """RFCs that already have chunks under this corpus version.
 

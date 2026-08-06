@@ -42,7 +42,14 @@ class Settings(BaseSettings):
     azure_openai_api_key: str | None = None
     azure_openai_api_version: str = "2024-10-21"
     azure_embedding_deployment: str = "text-embedding-3-small"
-    azure_chat_deployment: str = "gpt-4o-mini"
+    # gpt-4o-mini has zero quota on this subscription. Of what is available,
+    # gpt-4.1-mini streams its first token in ~985 ms against gpt-5-mini's ~2,708 ms:
+    # gpt-5-mini reasons before emitting anything, which is wasted on grounded lookup
+    # and ruinous for a streaming UI. Both answered correctly and cited the section.
+    azure_chat_deployment: str = "gpt-4.1-mini"
+    # Kept available for the agentic layer, where multi-step planning may justify the
+    # latency that single-shot answering does not.
+    azure_reasoning_deployment: str = "gpt-5-mini"
 
     anthropic_api_key: str | None = None
     anthropic_model: str = "claude-sonnet-5"

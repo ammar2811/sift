@@ -39,11 +39,24 @@
     "hit@10": 0.9038,
     "precision@5": 0.2731,
     "mrr": 0.6088,
-    "ndcg@10": 0.8875,
+    "ndcg@10": 0.6596,
     "p50_latency_ms": 71.2,
     "questions": 52
   },
   "by_type": {
+    "cross_document": {
+      "recall@1": 0.125,
+      "hit@1": 0.25,
+      "recall@3": 0.4583,
+      "hit@3": 0.5833,
+      "recall@5": 0.5417,
+      "hit@5": 0.75,
+      "recall@10": 0.7917,
+      "hit@10": 0.9167,
+      "precision@5": 0.2167,
+      "mrr": 0.4681,
+      "ndcg@10": 0.5491
+    },
     "factual": {
       "recall@1": 0.3636,
       "hit@1": 0.4091,
@@ -55,9 +68,7 @@
       "hit@10": 0.9091,
       "precision@5": 0.2909,
       "mrr": 0.6151,
-      "ndcg@10": 0.9424,
-      "p50_latency_ms": 68.7,
-      "questions": 22
+      "ndcg@10": 0.6817
     },
     "normative": {
       "recall@1": 0.5556,
@@ -70,24 +81,7 @@
       "hit@10": 0.8889,
       "precision@5": 0.2889,
       "mrr": 0.695,
-      "ndcg@10": 0.9965,
-      "p50_latency_ms": 72.4,
-      "questions": 18
-    },
-    "cross_document": {
-      "recall@1": 0.125,
-      "hit@1": 0.25,
-      "recall@3": 0.4583,
-      "hit@3": 0.5833,
-      "recall@5": 0.5417,
-      "hit@5": 0.75,
-      "recall@10": 0.7917,
-      "hit@10": 0.9167,
-      "precision@5": 0.2167,
-      "mrr": 0.4681,
-      "ndcg@10": 0.6232,
-      "p50_latency_ms": 87.5,
-      "questions": 12
+      "ndcg@10": 0.7062
     }
   },
   "questions": [
@@ -143,7 +137,7 @@
         "@10": 1.0
       },
       "mrr": 0.3333,
-      "ndcg_10": 0.3066
+      "ndcg_10": 0.5
     },
     {
       "id": "xdoc-2616-obsoleted-by",
@@ -304,7 +298,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 1.7641
+      "ndcg_10": 0.9758
     },
     {
       "id": "xdoc-tls-current-version",
@@ -358,7 +352,7 @@
         "@10": 1.0
       },
       "mrr": 0.25,
-      "ndcg_10": 0.2641
+      "ndcg_10": 0.4307
     },
     {
       "id": "xdoc-http-methods-current",
@@ -519,7 +513,7 @@
         "@10": 1.0
       },
       "mrr": 0.5,
-      "ndcg_10": 0.932
+      "ndcg_10": 0.5714
     },
     {
       "id": "xdoc-tls12-still-referenced",
@@ -573,7 +567,7 @@
         "@10": 1.0
       },
       "mrr": 0.1667,
-      "ndcg_10": 0.2184
+      "ndcg_10": 0.3562
     },
     {
       "id": "xdoc-dns-over-https-vs-classic",
@@ -734,7 +728,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 1.011
+      "ndcg_10": 0.7737
     },
     {
       "id": "fact-host-header",
@@ -893,7 +887,7 @@
         "@10": 1.0
       },
       "mrr": 0.5,
-      "ndcg_10": 1.2474
+      "ndcg_10": 0.5854
     },
     {
       "id": "fact-date-header",
@@ -946,7 +940,7 @@
         "@10": 1.0
       },
       "mrr": 0.5,
-      "ndcg_10": 1.374
+      "ndcg_10": 0.6448
     },
     {
       "id": "fact-must-definition",
@@ -1318,7 +1312,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 1.789
+      "ndcg_10": 0.9896
     },
     {
       "id": "fact-oauth-access-token",
@@ -1371,7 +1365,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 1.5
+      "ndcg_10": 0.9197
     },
     {
       "id": "fact-uri-scheme",
@@ -1424,7 +1418,7 @@
         "@10": 1.0
       },
       "mrr": 0.3333,
-      "ndcg_10": 0.8869
+      "ndcg_10": 0.5438
     },
     {
       "id": "fact-uri-percent-encoding",
@@ -1477,7 +1471,7 @@
         "@10": 1.0
       },
       "mrr": 0.5,
-      "ndcg_10": 0.9871
+      "ndcg_10": 0.6053
     },
     {
       "id": "fact-uri-unreserved",
@@ -1530,7 +1524,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 1.5
+      "ndcg_10": 0.9197
     },
     {
       "id": "fact-uri-authority",
@@ -1583,7 +1577,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 1.4307
+      "ndcg_10": 0.8772
     },
     {
       "id": "fact-dns-size-limits",
@@ -1689,7 +1683,7 @@
         "@10": 1.0
       },
       "mrr": 0.3333,
-      "ndcg_10": 0.9307
+      "ndcg_10": 0.5706
     },
     {
       "id": "fact-doh-media-type",
@@ -1743,7 +1737,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 1.3066
+      "ndcg_10": 1.0
     },
     {
       "id": "fact-websocket-close-frame",
@@ -1796,7 +1790,7 @@
         "@10": 1.0
       },
       "mrr": 0.5,
-      "ndcg_10": 1.1309
+      "ndcg_10": 0.6934
     },
     {
       "id": "fact-tcp-header-format",
@@ -2169,7 +2163,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 1.2641
+      "ndcg_10": 0.9675
     },
     {
       "id": "norm-websocket-server-no-mask",
@@ -2382,7 +2376,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 1.7197
+      "ndcg_10": 0.807
     },
     {
       "id": "norm-cache-no-store",
@@ -2489,7 +2483,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 1.8175
+      "ndcg_10": 0.8529
     },
     {
       "id": "norm-tls13-downgrade",
@@ -2542,7 +2536,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 2.1309
+      "ndcg_10": 1.0
     },
     {
       "id": "norm-tls13-certificate-verify",
@@ -2648,7 +2642,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 1.3155
+      "ndcg_10": 0.8066
     },
     {
       "id": "norm-smtp-crlf",
@@ -2755,7 +2749,7 @@
         "@10": 1.0
       },
       "mrr": 0.2,
-      "ndcg_10": 0.2372
+      "ndcg_10": 0.3869
     },
     {
       "id": "norm-oauth-tls-required",
@@ -2862,7 +2856,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 2.5616
+      "ndcg_10": 1.0
     }
   ]
 }

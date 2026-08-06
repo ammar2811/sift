@@ -37,11 +37,24 @@
     "hit@10": 0.2115,
     "precision@5": 0.1042,
     "mrr": 0.1611,
-    "ndcg@10": 0.1762,
+    "ndcg@10": 0.1721,
     "p50_latency_ms": 1.9,
     "questions": 52
   },
   "by_type": {
+    "cross_document": {
+      "recall@1": 0.0,
+      "hit@1": 0.0,
+      "recall@3": 0.0,
+      "hit@3": 0.0,
+      "recall@5": 0.0,
+      "hit@5": 0.0,
+      "recall@10": 0.0,
+      "hit@10": 0.0,
+      "precision@5": 0.0,
+      "mrr": 0.0,
+      "ndcg@10": 0.0
+    },
     "factual": {
       "recall@1": 0.0909,
       "hit@1": 0.0909,
@@ -53,9 +66,7 @@
       "hit@10": 0.2727,
       "precision@5": 0.1295,
       "mrr": 0.1534,
-      "ndcg@10": 0.2018,
-      "p50_latency_ms": 1.7,
-      "questions": 22
+      "ndcg@10": 0.1831
     },
     "normative": {
       "recall@1": 0.2222,
@@ -68,24 +79,7 @@
       "hit@10": 0.2778,
       "precision@5": 0.1426,
       "mrr": 0.2778,
-      "ndcg@10": 0.2626,
-      "p50_latency_ms": 1.9,
-      "questions": 18
-    },
-    "cross_document": {
-      "recall@1": 0.0,
-      "hit@1": 0.0,
-      "recall@3": 0.0,
-      "hit@3": 0.0,
-      "recall@5": 0.0,
-      "hit@5": 0.0,
-      "recall@10": 0.0,
-      "hit@10": 0.0,
-      "precision@5": 0.0,
-      "mrr": 0.0,
-      "ndcg@10": 0.0,
-      "p50_latency_ms": 2.2,
-      "questions": 12
+      "ndcg@10": 0.2733
     }
   },
   "questions": [
@@ -1046,7 +1040,7 @@
         "@10": 1.0
       },
       "mrr": 0.5,
-      "ndcg_10": 1.0616
+      "ndcg_10": 0.6509
     },
     {
       "id": "fact-uri-authority",
@@ -1485,7 +1479,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 0.6131
+      "ndcg_10": 1.0
     },
     {
       "id": "norm-websocket-server-no-mask",
@@ -1609,7 +1603,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 0.6131
+      "ndcg_10": 1.0
     },
     {
       "id": "norm-cache-must-not-store",
@@ -1662,7 +1656,7 @@
         "@10": 1.0
       },
       "mrr": 1.0,
-      "ndcg_10": 1.5
+      "ndcg_10": 0.9197
     },
     {
       "id": "norm-cache-no-store",

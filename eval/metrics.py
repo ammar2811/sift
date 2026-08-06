@@ -50,16 +50,25 @@ def dcg(relevance: Sequence[bool], k: int) -> float:
 
 
 def ndcg_at_k(relevance: Sequence[bool], total_relevant: int, k: int) -> float:
-    """Discounted cumulative gain against the best achievable ordering.
+    """Discounted cumulative gain against the best ordering of the same results.
 
-    The ideal ranking places every relevant item first, capped by both ``k`` and the
-    number of relevant items that exist.
+    The ideal is the retrieved relevance sorted descending - every relevant item moved
+    to the front - which bounds the result at 1.0 by construction.
+
+    It deliberately is *not* ``[True] * total_relevant``. ``total_relevant`` counts
+    labelled sections, but one label is satisfied by several retrieved chunks, since a
+    label of ``9110:7.2`` is matched by 7.2, 7.2.1 and 7.2.1.3 alike. Three relevant
+    chunks against a single label produced a DCG of 2.13 over an "ideal" of 1.0, and
+    an nDCG above 1.0, which is not a meaningful quantity.
+
+    Whether the whole labelled set was found is what recall measures; this measures
+    how well what was found is ordered.
     """
-    ideal_hits = min(total_relevant, k)
-    if ideal_hits <= 0:
+    if k <= 0 or total_relevant <= 0:
         return 0.0
-    ideal = dcg([True] * ideal_hits, k)
-    return dcg(relevance, k) / ideal if ideal > 0 else 0.0
+    window = list(relevance[:k])
+    ideal = dcg(sorted(window, reverse=True), k)
+    return dcg(window, k) / ideal if ideal > 0 else 0.0
 
 
 def hit_rate(relevance: Sequence[bool], k: int) -> float:

@@ -123,11 +123,14 @@ async def ready() -> ReadinessResponse:
     chunks: int | None = None
 
     started = time.perf_counter()
+    corpus_dimensions: int | None = None
     try:
         with db.connection() as conn:
             version_id = db.active_version_id(conn)
             if version_id is not None:
                 chunks = int(db.corpus_stats(conn, version_id).get("chunks") or 0)
+                version = db.corpus_version(conn, version_id)
+                corpus_dimensions = int(version["dimensions"]) if version else None
         checks.append(
             DependencyStatus(
                 name="postgres",
@@ -155,14 +158,27 @@ async def ready() -> ReadinessResponse:
         except Exception as exc:
             checks.append(DependencyStatus(name="redis", ok=False, detail=str(exc)[:200]))
 
-    provider_ok = state.embeddings is not None
-    checks.append(
-        DependencyStatus(
-            name="embeddings",
-            ok=provider_ok,
-            detail=state.embeddings.name if state.embeddings else "not initialised",
+    # A provider whose vectors are a different width than the corpus cannot answer a
+    # single query - pgvector rejects the comparison outright. Catching it here turns
+    # an opaque per-request SQL error into one clear reason this replica is not ready.
+    provider = state.embeddings
+    if provider is None:
+        checks.append(DependencyStatus(name="embeddings", ok=False, detail="not initialised"))
+    elif corpus_dimensions is not None and provider.dimensions != corpus_dimensions:
+        checks.append(
+            DependencyStatus(
+                name="embeddings",
+                ok=False,
+                detail=(
+                    f"{provider.name} produces {provider.dimensions}-dim vectors but the "
+                    f"active corpus was embedded at {corpus_dimensions}. Point "
+                    "SIFT_EMBEDDING_PROVIDER at the provider used for ingestion, or "
+                    "re-ingest."
+                ),
+            )
         )
-    )
+    else:
+        checks.append(DependencyStatus(name="embeddings", ok=True, detail=provider.name))
 
     # A corpus with no chunks is not an error, but it is not ready to answer either.
     required = {"postgres", "embeddings"}
@@ -196,6 +212,16 @@ async def search_endpoint(request: SearchRequest, settings: SettingsDep) -> Sear
         version_id = db.active_version_id(conn)
         if version_id is None:
             raise HTTPException(503, "no active corpus version; run ingestion first")
+
+        version = db.corpus_version(conn, version_id)
+        if version and int(version["dimensions"]) != state.embeddings.dimensions:
+            raise HTTPException(
+                503,
+                f"embedding width mismatch: provider gives "
+                f"{state.embeddings.dimensions} dimensions, corpus was embedded at "
+                f"{version['dimensions']}. See /ready.",
+            )
+
         hits = search(
             conn,
             version_id,
