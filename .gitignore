@@ -1,0 +1,17 @@
+# Corpus cache - ~106M chars, refetchable via `python -m apps.worker.fetch_corpus`
+data/rfc-cache/
+data/rfc-index.xml
+*.partial
+
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+node_modules/
+dist/
+.env
+.env.local
