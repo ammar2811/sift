@@ -135,6 +135,14 @@ def main() -> int:
         help="include non-obsoleted Proposed Standards from this year onward (0 to exclude)",
     )
     p.add_argument("--limit", type=int, default=0, help="cap the number of documents (0 = all)")
+    p.add_argument(
+        "--rfc",
+        type=int,
+        nargs="+",
+        default=(),
+        help="fetch these RFC numbers regardless of the selector (foundational specs "
+        "such as TLS 1.3 and OAuth 2.0 predate the Proposed Standard year cutoff)",
+    )
     p.add_argument("--dry-run", action="store_true", help="report the selection and exit")
     args = p.parse_args()
 
@@ -142,10 +150,14 @@ def main() -> int:
         asyncio.run(refresh_index())
 
     metas = load_index(INDEX_PATH)
-    selector = CorpusSelector(proposed_since=args.proposed_since or None)
-    selected = selector.apply(metas)
-    if args.limit:
-        selected = selected[: args.limit]
+    if args.rfc:
+        wanted = set(args.rfc)
+        selected = [m for m in metas if m.number in wanted]
+    else:
+        selector = CorpusSelector(proposed_since=args.proposed_since or None)
+        selected = selector.apply(metas)
+        if args.limit:
+            selected = selected[: args.limit]
 
     pages = sum(m.page_count for m in selected)
     print(

@@ -1,0 +1,169 @@
+# Normative requirements expressed with RFC 2119 keywords.
+#
+# These test two things at once: whether MUST/SHOULD language survives chunking, and
+# whether retrieval finds the requirement itself rather than nearby descriptive prose.
+questions:
+  - id: norm-should-definition
+    question: What does SHOULD mean, and when may an implementation ignore it?
+    type: normative
+    reference_answer: >-
+      SHOULD, or RECOMMENDED, means there may exist valid reasons in particular
+      circumstances to ignore a particular item, but the full implications must be
+      understood and carefully weighed before choosing a different course.
+    relevant: ["2119:3"]
+    must_mention: ["valid reasons", "carefully weighed"]
+
+  - id: norm-must-not-definition
+    question: What does MUST NOT mean in an IETF specification?
+    type: normative
+    reference_answer: >-
+      MUST NOT, or SHALL NOT, means the definition is an absolute prohibition of the
+      specification.
+    relevant: ["2119:2"]
+    must_mention: ["absolute prohibition"]
+
+  - id: norm-should-not-definition
+    question: What does SHOULD NOT mean in an RFC?
+    type: normative
+    reference_answer: >-
+      SHOULD NOT, or NOT RECOMMENDED, means there may exist valid reasons in particular
+      circumstances when the particular behavior is acceptable or even useful, but the
+      full implications should be understood and the case carefully weighed first.
+    relevant: ["2119:4"]
+
+  - id: norm-2119-uppercase
+    question: When do RFC 2119 keywords carry their special normative meaning?
+    type: normative
+    reference_answer: >-
+      The keywords carry their defined meanings only when they appear in all capitals,
+      and RFC 8174 clarifies that lowercase uses have their ordinary English meaning.
+    relevant: ["8174:2", "2119:6"]
+    must_mention: ["capitals"]
+
+  - id: norm-websocket-masking
+    question: Must a WebSocket client mask the frames it sends to the server?
+    type: normative
+    reference_answer: >-
+      Yes. A client MUST mask all frames it sends to the server, using a fresh masking
+      key for each frame.
+    relevant: ["6455:5.3", "6455:5.1"]
+    must_mention: ["mask"]
+
+  - id: norm-websocket-server-no-mask
+    question: Is a WebSocket server allowed to mask the frames it sends?
+    type: normative
+    reference_answer: >-
+      No. A server MUST NOT mask any frames that it sends to the client.
+    relevant: ["6455:5.1"]
+    must_mention: ["MUST NOT"]
+
+  - id: norm-http-host-required
+    question: What must a client do about the Host header field when sending an HTTP/1.1 request?
+    type: normative
+    reference_answer: >-
+      A client MUST send a Host header field in all HTTP/1.1 request messages, and it
+      must send a field value that matches the target URI's authority.
+    relevant: ["9110:7.2"]
+    must_mention: ["MUST"]
+
+  - id: norm-http-server-reject-missing-host
+    question: How must a server respond to an HTTP/1.1 request that lacks a Host header?
+    type: normative
+    reference_answer: >-
+      A server that receives an HTTP/1.1 request without a Host header field, or with
+      more than one, MUST respond with a 400 (Bad Request).
+    relevant: ["9112:3.2", "9110:7.2"]
+    must_mention: ["400"]
+
+  - id: norm-cache-must-not-store
+    question: When must a cache not store a response?
+    type: normative
+    reference_answer: >-
+      A cache MUST NOT store a response unless conditions are met, including that the
+      request method is understood and cacheable, the status code is final and cacheable,
+      and no-store is absent from the directives.
+    relevant: ["9111:3"]
+    must_mention: ["MUST NOT store"]
+
+  - id: norm-cache-no-store
+    question: What does the no-store cache directive require?
+    type: normative
+    reference_answer: >-
+      The no-store directive indicates that a cache MUST NOT store any part of the
+      request or response.
+    relevant: ["9111:5.2.2.5", "9111:5.2.1.5"]
+    must_mention: ["no-store"]
+
+  - id: norm-cache-heuristic-freshness
+    question: When may a cache calculate heuristic freshness?
+    type: normative
+    reference_answer: >-
+      A cache may use heuristics to calculate a freshness lifetime when no explicit
+      expiration time is present, but must not do so for responses without explicit
+      freshness whose status code is not defined as heuristically cacheable.
+    relevant: ["9111:4.2.2"]
+    must_mention: ["heuristic"]
+
+  - id: norm-tls13-downgrade
+    question: What must a TLS 1.3 client do if it detects the downgrade sentinel in ServerHello random?
+    type: normative
+    reference_answer: >-
+      A client that receives the downgrade sentinel value in the last eight bytes of the
+      ServerHello Random MUST abort the handshake with an illegal_parameter alert.
+    relevant: ["8446:4.1.3"]
+    must_mention: ["abort"]
+
+  - id: norm-tls13-certificate-verify
+    question: What must a TLS 1.3 endpoint do when certificate verification fails?
+    type: normative
+    reference_answer: >-
+      If the verification of the CertificateVerify signature fails, the receiver MUST
+      terminate the handshake with a decrypt_error alert.
+    relevant: ["8446:4.4.3"]
+    must_mention: ["MUST"]
+
+  - id: norm-smtp-line-length
+    question: What limits does SMTP place on the length of a text line?
+    type: normative
+    reference_answer: >-
+      The maximum total length of a text line including the CRLF is 1000 octets, and
+      servers must not send longer lines.
+    relevant: ["5321:4.5.3.1"]
+    must_mention: ["1000"]
+
+  - id: norm-smtp-crlf
+    question: How must SMTP lines be terminated?
+    type: normative
+    reference_answer: >-
+      Lines consist of characters terminated by the two-character sequence CR followed by
+      LF; CR and LF must not appear independently in the body.
+    relevant: ["5321:2.3.8"]
+    must_mention: ["CRLF"]
+
+  - id: norm-tcp-reset-processing
+    question: What must a TCP implementation do when it receives a RST segment?
+    type: normative
+    reference_answer: >-
+      A TCP receiver must validate the sequence number of an incoming RST before acting
+      on it, and in the synchronized state must respond appropriately rather than
+      accepting any RST.
+    relevant: ["9293:3.5.3", "9293:3.5.2"]
+    must_mention: ["RST"]
+
+  - id: norm-oauth-tls-required
+    question: When must an OAuth 2.0 authorization server require TLS?
+    type: normative
+    reference_answer: >-
+      The authorization server MUST require TLS for the authorization endpoint and the
+      token endpoint, since requests carry credentials in clear text.
+    relevant: ["6749:3.1", "6749:3.2"]
+    must_mention: ["TLS"]
+
+  - id: norm-jwt-validate
+    question: What must an implementation do when validating a JWT?
+    type: normative
+    reference_answer: >-
+      The recipient must parse and verify the JWT, including verifying the signature or
+      MAC, and must reject the JWT if any validation step fails.
+    relevant: ["7519:7.2"]
+    must_mention: ["MUST"]

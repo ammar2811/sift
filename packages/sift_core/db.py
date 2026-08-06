@@ -67,11 +67,70 @@ def vector_type(dimensions: int = DEFAULT_DIMENSIONS, *, half: bool = True) -> s
     return f"halfvec({dimensions})" if half else f"vector({dimensions})"
 
 
+class VectorDimensionMismatch(RuntimeError):
+    """The chunks table's vector column does not match the requested dimension."""
+
+
+def existing_vector_type(conn: psycopg.Connection[Any]) -> str | None:
+    """The declared type of ``chunks.embedding``, or None when the table is absent."""
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT format_type(a.atttypid, a.atttypmod) AS type_name
+            FROM pg_attribute a
+            WHERE a.attrelid = to_regclass('chunks')
+              AND a.attname = 'embedding'
+              AND a.attnum > 0
+            """
+        )
+        row = cur.fetchone()
+    return str(row["type_name"]) if row else None
+
+
+def _recreate_embedding_column(conn: psycopg.Connection[Any], wanted: str) -> None:
+    """Retype the vector column, discarding existing vectors.
+
+    Vectors of a different dimension carry no meaning under the new one, so there is
+    nothing to preserve - every chunk has to be re-embedded regardless.
+    """
+    with conn.cursor() as cur:
+        cur.execute("DROP INDEX IF EXISTS chunks_embedding_idx")
+        cur.execute("TRUNCATE TABLE chunks")
+        cur.execute(
+            sql.SQL("ALTER TABLE chunks ALTER COLUMN embedding TYPE {}").format(sql.SQL(wanted))
+        )
+        cur.execute("UPDATE documents SET is_embedded = false, ingested_at = NULL")
+    conn.commit()
+
+
 def migrate(
-    conn: psycopg.Connection[Any], dimensions: int = DEFAULT_DIMENSIONS, *, half: bool = True
+    conn: psycopg.Connection[Any],
+    dimensions: int = DEFAULT_DIMENSIONS,
+    *,
+    half: bool = True,
+    recreate_vectors: bool = False,
 ) -> None:
-    """Apply the schema. Idempotent - every statement is IF NOT EXISTS."""
-    ddl = SCHEMA_PATH.read_text().replace("${VECTOR_TYPE}", vector_type(dimensions, half=half))
+    """Apply the schema. Idempotent - every statement is IF NOT EXISTS.
+
+    That idempotence has one sharp edge: ``CREATE TABLE IF NOT EXISTS`` cannot change
+    an existing column's type, so switching embedding dimension would leave a table
+    that silently rejects every insert. Since the optimization sweep varies dimension,
+    the mismatch is detected here and reported rather than discovered as a wall of
+    per-document failures.
+    """
+    wanted = vector_type(dimensions, half=half)
+    existing = existing_vector_type(conn)
+    if existing is not None and existing != wanted:
+        if not recreate_vectors:
+            raise VectorDimensionMismatch(
+                f"chunks.embedding is {existing} but this run needs {wanted}. "
+                "Vectors of one dimension are meaningless under another, so the "
+                "column must be retyped and the corpus re-embedded: rerun with "
+                "--reset-vectors (destroys all stored chunks)."
+            )
+        _recreate_embedding_column(conn, wanted)
+
+    ddl = SCHEMA_PATH.read_text().replace("${VECTOR_TYPE}", wanted)
     with conn.cursor() as cur:
         cur.execute(ddl)
     conn.commit()

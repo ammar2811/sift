@@ -1,0 +1,194 @@
+# Factual lookup: a specific value or definition stated in one identifiable place.
+# These are the easiest class; if recall here is poor, chunking is the suspect.
+questions:
+  - id: fact-host-header
+    question: What information does the HTTP Host header field provide?
+    type: factual
+    reference_answer: >-
+      The Host header field provides the host and port information from the target URI,
+      which lets an origin server distinguish among resources when serving multiple host
+      names.
+    relevant: ["9110:7.2"]
+    must_mention: ["host", "port"]
+
+  - id: fact-417-meaning
+    question: What does the HTTP 417 status code mean?
+    type: factual
+    reference_answer: >-
+      417 (Expectation Failed) indicates that the expectation given in the request's
+      Expect header field could not be met by at least one of the inbound servers.
+    relevant: ["9110:15.5.18"]
+    must_mention: ["Expectation Failed", "Expect"]
+
+  - id: fact-get-method
+    question: What does the HTTP GET method request?
+    type: factual
+    reference_answer: >-
+      GET requests transfer of a current selected representation for the target resource.
+    relevant: ["9110:9.3.1"]
+    must_mention: ["representation"]
+
+  - id: fact-date-header
+    question: What does the HTTP Date header field represent?
+    type: factual
+    reference_answer: >-
+      The Date header field represents the date and time at which the message was
+      originated.
+    relevant: ["9110:6.6.1"]
+    must_mention: ["originated"]
+
+  - id: fact-must-definition
+    question: In IETF specifications, what does the keyword MUST mean?
+    type: factual
+    reference_answer: >-
+      MUST, and the equivalent terms REQUIRED and SHALL, mean the definition is an
+      absolute requirement of the specification.
+    relevant: ["2119:1"]
+    must_mention: ["absolute requirement"]
+
+  - id: fact-may-definition
+    question: What does the keyword MAY mean in an RFC?
+    type: factual
+    reference_answer: >-
+      MAY, and the adjective OPTIONAL, mean an item is truly optional.
+    relevant: ["2119:5"]
+    must_mention: ["optional"]
+
+  - id: fact-jwt-exp-claim
+    question: What does the exp claim in a JSON Web Token specify?
+    type: factual
+    reference_answer: >-
+      The "exp" (Expiration Time) claim identifies the expiration time on or after which
+      the JWT must not be accepted for processing.
+    relevant: ["7519:4.1.4"]
+    must_mention: ["expiration"]
+
+  - id: fact-jwt-iss-claim
+    question: What does the iss claim identify in a JWT?
+    type: factual
+    reference_answer: The "iss" (Issuer) claim identifies the principal that issued the JWT.
+    relevant: ["7519:4.1.1"]
+    must_mention: ["issuer"]
+
+  - id: fact-jwt-registered-claims
+    question: Which claim names are registered in the JWT specification?
+    type: factual
+    reference_answer: >-
+      The registered claim names include iss, sub, aud, exp, nbf, iat and jti. None are
+      mandatory to use.
+    relevant: ["7519:4.1"]
+
+  - id: fact-oauth-roles
+    question: What roles does the OAuth 2.0 framework define?
+    type: factual
+    reference_answer: >-
+      OAuth 2.0 defines four roles: resource owner, resource server, client, and
+      authorization server.
+    relevant: ["6749:1.1"]
+    must_mention: ["resource owner", "authorization server"]
+
+  - id: fact-oauth-auth-code
+    question: What is the authorization code grant in OAuth 2.0?
+    type: factual
+    reference_answer: >-
+      The authorization code is obtained by using an authorization server as an
+      intermediary between the client and resource owner, and is exchanged for an access
+      token.
+    relevant: ["6749:1.3.1", "6749:4.1"]
+    must_mention: ["authorization code"]
+
+  - id: fact-oauth-access-token
+    question: What is an access token in OAuth 2.0?
+    type: factual
+    reference_answer: >-
+      Access tokens are credentials used to access protected resources; they are strings
+      representing an authorization issued to the client.
+    relevant: ["6749:1.4"]
+    must_mention: ["credentials"]
+
+  - id: fact-uri-scheme
+    question: What is the syntax of a URI scheme component?
+    type: factual
+    reference_answer: >-
+      A scheme name begins with a letter and is followed by any combination of letters,
+      digits, plus, period or hyphen, and is case-insensitive.
+    relevant: ["3986:3.1"]
+    must_mention: ["scheme"]
+
+  - id: fact-uri-percent-encoding
+    question: How does percent-encoding represent a byte in a URI?
+    type: factual
+    reference_answer: >-
+      A percent-encoded octet is encoded as a percent character followed by two
+      hexadecimal digits representing that octet's numeric value.
+    relevant: ["3986:2.1"]
+    must_mention: ["hexadecimal"]
+
+  - id: fact-uri-unreserved
+    question: Which characters are unreserved in a URI?
+    type: factual
+    reference_answer: >-
+      Unreserved characters are uppercase and lowercase letters, decimal digits, hyphen,
+      period, underscore and tilde.
+    relevant: ["3986:2.3"]
+    must_mention: ["ALPHA", "DIGIT"]
+
+  - id: fact-uri-authority
+    question: What components make up the authority part of a URI?
+    type: factual
+    reference_answer: >-
+      The authority component is preceded by a double slash and consists of an optional
+      userinfo, a host, and an optional port.
+    relevant: ["3986:3.2"]
+    must_mention: ["host"]
+
+  - id: fact-dns-size-limits
+    question: What are the size limits for DNS labels and names?
+    type: factual
+    reference_answer: >-
+      Labels are limited to 63 octets or fewer, and a complete domain name is limited to
+      255 octets or fewer.
+    relevant: ["1035:2.3.4"]
+    must_mention: ["63", "255"]
+
+  - id: fact-dns-preferred-syntax
+    question: What is the preferred name syntax for DNS domain names?
+    type: factual
+    reference_answer: >-
+      Labels must start with a letter, end with a letter or digit, and contain only
+      letters, digits and hyphens in the interior.
+    relevant: ["1035:2.3.1"]
+
+  - id: fact-doh-media-type
+    question: What media type does DNS over HTTPS use for its messages?
+    type: factual
+    reference_answer: The media type is application/dns-message.
+    relevant: ["8484:6", "8484:7.1"]
+    must_mention: ["application/dns-message"]
+
+  - id: fact-websocket-close-frame
+    question: What is the purpose of the WebSocket Close frame?
+    type: factual
+    reference_answer: >-
+      The Close frame carries an opcode of 0x8 and may contain a status code and reason,
+      and it begins the closing handshake.
+    relevant: ["6455:5.5.1"]
+    must_mention: ["status code"]
+
+  - id: fact-tcp-header-format
+    question: What fields does the TCP header contain?
+    type: factual
+    reference_answer: >-
+      The TCP header contains source and destination ports, sequence and acknowledgment
+      numbers, data offset, control bits, window, checksum and urgent pointer.
+    relevant: ["9293:3.1"]
+    must_mention: ["Sequence Number", "Checksum"]
+
+  - id: fact-tls13-negotiation
+    question: How does a TLS 1.3 client offer cryptographic options?
+    type: factual
+    reference_answer: >-
+      The client offers a list of cipher suites, a supported_groups extension with key
+      shares, and signature algorithms in its ClientHello.
+    relevant: ["8446:4.1.1"]
+    must_mention: ["cipher suites", "ClientHello"]

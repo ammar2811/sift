@@ -1,0 +1,66 @@
+# Questions the corpus cannot answer.
+#
+# Scored on abstention, never on retrieval - retrieval will always return its nearest
+# chunks, so the only meaningful measure is whether the system declines to answer.
+# Most portfolio RAG evaluations omit this class entirely, which is exactly why a
+# measured refusal rate is worth having.
+#
+# Two kinds are represented: questions about topics outside the corpus, and questions
+# that look answerable because they use in-domain vocabulary but rest on a false
+# premise. The second kind is the harder failure mode.
+questions:
+  - id: unans-nonexistent-rfc
+    question: What does RFC 99999 specify?
+    type: unanswerable
+    reference_answer: >-
+      No such RFC exists. The system should say so rather than describing a plausible
+      document.
+    notes: Plausible-looking identifier, no such document.
+
+  - id: unans-ietf-budget
+    question: What is the IETF's annual operating budget?
+    type: unanswerable
+    reference_answer: >-
+      Not specified in any RFC in this corpus; the corpus covers protocol specifications,
+      not organisational finances.
+
+  - id: unans-implementation-language
+    question: Which programming language should I use to implement an HTTP/3 server?
+    type: unanswerable
+    reference_answer: >-
+      RFCs specify protocol behaviour, not implementation language choices. The corpus
+      cannot answer this.
+
+  - id: unans-future-rfcs
+    question: How many RFCs will the IETF publish in 2030?
+    type: unanswerable
+    reference_answer: A prediction about the future, which no RFC states.
+
+  - id: unans-http-status-599
+    question: What does the HTTP status code 599 mean?
+    type: unanswerable
+    reference_answer: >-
+      599 is not a status code defined by any HTTP specification. The system should say
+      so rather than inventing a meaning.
+    notes: False premise using in-domain vocabulary - the hard case.
+
+  - id: unans-tls14
+    question: What are the main changes introduced in TLS 1.4?
+    type: unanswerable
+    reference_answer: >-
+      TLS 1.4 does not exist. The most recent version specified is TLS 1.3 in RFC 8446.
+    notes: False premise; retrieval will surface confident-looking TLS 1.3 content.
+
+  - id: unans-vendor-market-share
+    question: Which web server software has the largest market share among HTTP/2 deployments?
+    type: unanswerable
+    reference_answer: >-
+      Deployment statistics are not part of the protocol specifications in this corpus.
+
+  - id: unans-quic-mandatory-port
+    question: Which port number does RFC 9000 require all QUIC connections to use?
+    type: unanswerable
+    reference_answer: >-
+      RFC 9000 does not mandate a port for QUIC. The question presupposes a requirement
+      that the specification does not make.
+    notes: False premise about a document that IS in the corpus - the hardest variant.

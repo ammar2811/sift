@@ -1,0 +1,115 @@
+# Questions whose answer lives in a document that obsoleted the one named.
+#
+# Single-shot retrieval is expected to score poorly here: the query's vocabulary points
+# at the superseded document, while the correct answer is in its successor. That gap is
+# the measurable justification for the agentic layer, so these are labelled with the
+# CURRENT specification's sections rather than the obsolete ones.
+questions:
+  - id: xdoc-2616-host-current
+    question: RFC 2616 defined the Host header. Which specification defines it now, and what does it require?
+    type: cross_document
+    reference_answer: >-
+      RFC 2616 was obsoleted; HTTP semantics including the Host header field are now
+      defined by RFC 9110 Section 7.2, which requires a client to send Host in all
+      HTTP/1.1 requests.
+    relevant: ["9110:7.2", "9110:1.4"]
+    must_mention: ["Host"]
+    notes: Requires walking 2616 -> 7230 -> 9110.
+
+  - id: xdoc-2616-obsoleted-by
+    question: Which RFCs obsoleted RFC 2616?
+    type: cross_document
+    reference_answer: >-
+      RFC 2616 was obsoleted by RFCs 7230 through 7235, which were themselves later
+      obsoleted by RFC 9110 and its companions.
+    relevant: ["9110:1.4"]
+    must_mention: ["7230"]
+
+  - id: xdoc-http-caching-current
+    question: RFC 2616 section 13 covered HTTP caching. Where is caching specified today?
+    type: cross_document
+    reference_answer: >-
+      HTTP caching is now specified in RFC 9111, which obsoleted RFC 7234, which in turn
+      replaced the caching material in RFC 2616.
+    relevant: ["9111:1", "9111:2"]
+    must_mention: ["cache"]
+
+  - id: xdoc-tcp-current-spec
+    question: RFC 793 specified TCP. What document specifies TCP now?
+    type: cross_document
+    reference_answer: >-
+      RFC 9293 obsoletes RFC 793 and is the current TCP specification, rolling up the
+      many updates made to the original.
+    relevant: ["9293:1", "9293:2"]
+    must_mention: ["RFC 793"]
+
+  - id: xdoc-tls-current-version
+    question: RFC 5246 defined TLS 1.2. What is the current TLS specification and how does it differ?
+    type: cross_document
+    reference_answer: >-
+      RFC 8446 defines TLS 1.3, which obsoletes RFC 5246. It removes legacy key exchange
+      and cipher options and shortens the handshake to one round trip.
+    relevant: ["8446:1.2", "8446:1"]
+    must_mention: ["1.3"]
+
+  - id: xdoc-http-methods-current
+    question: RFC 7231 defined HTTP methods and status codes. Which RFC defines them now?
+    type: cross_document
+    reference_answer: >-
+      RFC 9110 obsoletes RFC 7231 and now defines HTTP methods and status codes.
+    relevant: ["9110:9", "9110:1.4"]
+    must_mention: ["method"]
+
+  - id: xdoc-http-message-syntax
+    question: Where is HTTP/1.1 message syntax and connection management specified now that RFC 7230 is obsolete?
+    type: cross_document
+    reference_answer: >-
+      RFC 9112 specifies HTTP/1.1 message syntax and connection management; the semantics
+      that also lived in RFC 7230 moved to RFC 9110.
+    relevant: ["9112:1", "9110:1.4"]
+    must_mention: ["HTTP/1.1"]
+
+  - id: xdoc-expect-continue-current
+    question: Which current RFC describes the Expect header and the 100-continue mechanism?
+    type: cross_document
+    reference_answer: >-
+      RFC 9110 Section 10.1.1 defines the Expect header field and the 100-continue
+      expectation, replacing the treatment in RFC 2616 and RFC 7231.
+    relevant: ["9110:10.1.1"]
+    must_mention: ["Expect"]
+
+  - id: xdoc-tls12-still-referenced
+    question: Does the current TLS specification still allow TLS 1.2, and what does it say about older versions?
+    type: cross_document
+    reference_answer: >-
+      RFC 8446 permits negotiating earlier versions for backwards compatibility but
+      updates TLS 1.2 usage, and separate best-practice guidance deprecates the oldest
+      versions.
+    relevant: ["8446:1.3", "8446:4.1.3"]
+
+  - id: xdoc-dns-over-https-vs-classic
+    question: RFC 1035 defined DNS over UDP and TCP. How is DNS carried over HTTPS?
+    type: cross_document
+    reference_answer: >-
+      RFC 8484 defines DNS over HTTPS, encoding DNS messages in HTTP requests and
+      responses using the application/dns-message media type.
+    relevant: ["8484:4.1", "8484:1"]
+    must_mention: ["HTTPS"]
+
+  - id: xdoc-http2-host-authority
+    question: In HTTP/2, what replaces the Host header field?
+    type: cross_document
+    reference_answer: >-
+      In HTTP/2 and HTTP/3 the Host header field is in some cases supplanted by the
+      ":authority" pseudo-header field of a request's control data.
+    relevant: ["9110:7.2"]
+    must_mention: [":authority"]
+
+  - id: xdoc-udp-still-current
+    question: Is RFC 768 still the current specification for UDP?
+    type: cross_document
+    reference_answer: >-
+      Yes. RFC 768 remains an Internet Standard and has not been obsoleted, though later
+      documents such as RFC 8085 add usage guidelines.
+    relevant: ["768", "8085:1"]
+    notes: A negative control - the chain terminates immediately, so the agent must not invent a successor.

@@ -46,6 +46,12 @@ strict = true
 warn_return_any = true
 warn_unused_ignores = true
 
+# FastAPI's route decorators are untyped, so `strict` flags every handler. Narrow the
+# exemption to the router module rather than relaxing strictness across the project.
+[[tool.mypy.overrides]]
+module = "apps.api.main"
+disallow_untyped_decorators = false
+
 [tool.pytest.ini_options]
 testpaths = ["apps", "packages", "eval"]
 asyncio_mode = "auto"
