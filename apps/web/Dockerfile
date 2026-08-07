@@ -4,10 +4,6 @@
 
 FROM node:22-alpine AS build
 
-# See apps/api/Dockerfile: this label is what links the published package to the
-# repository, which is what lets the repository's GITHUB_TOKEN push to it.
-LABEL org.opencontainers.image.source="https://github.com/ammar2811/sift"
-
 WORKDIR /app
 RUN corepack enable
 
@@ -18,6 +14,11 @@ COPY . .
 RUN pnpm build
 
 FROM nginx:1.27-alpine AS runtime
+
+# See apps/api/Dockerfile: this label is what links the published package to the
+# repository, which is what lets the repository's GITHUB_TOKEN push to it. It must sit
+# in the final stage - labels on an earlier stage are discarded with that stage.
+LABEL org.opencontainers.image.source="https://github.com/ammar2811/sift"
 
 COPY --from=build /app/dist /usr/share/nginx/html
 # The nginx image runs envsubst over /etc/nginx/templates/*.template at start, so the
