@@ -137,6 +137,13 @@ def load_index(path: Path) -> list[RfcMeta]:
     return sorted((m for m in parsed if m is not None), key=lambda m: m.number)
 
 
+def _load_bearing() -> frozenset[int]:
+    """The committed load-bearing manifest, imported lazily to avoid a cycle."""
+    from packages.sift_core.citations import load_manifest
+
+    return load_manifest()
+
+
 @dataclass(frozen=True, slots=True)
 class CorpusSelector:
     """Which RFCs get their full text embedded.
@@ -146,12 +153,18 @@ class CorpusSelector:
     ``proposed_since`` is the tuning knob: it trades corpus breadth against embedding
     cost and re-ingestion time, which is the binding constraint during the
     optimization sweep.
+
+    That year cutoff has a blind spot, because an IETF specification can stay at
+    Proposed Standard indefinitely - OAuth 2.0, JWT and WebSocket all have, and all
+    fell outside it while the corpus cited them heavily. ``include`` is therefore
+    seeded from the load-bearing manifest, so the documents the corpus depends on come
+    in regardless of their year. See ``packages.sift_core.citations``.
     """
 
     mature: frozenset[str] = MATURE_STANDARDS | BCP
     proposed_since: int | None = 2020
     require_text: bool = True
-    include: frozenset[int] = field(default_factory=frozenset)
+    include: frozenset[int] = field(default_factory=lambda: _load_bearing())
     exclude: frozenset[int] = field(default_factory=frozenset)
 
     def selects(self, m: RfcMeta) -> bool:
