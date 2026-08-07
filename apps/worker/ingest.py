@@ -229,6 +229,15 @@ def run(args: argparse.Namespace) -> IngestStats:
                 rate = stats.chunks / stats.embed_seconds if stats.embed_seconds else 0
                 logger.info("[%d/%d] %s (%.0f chunks/s)", i, len(targets), stats.render(), rate)
 
+        # Not optional, and not behind a flag. Keyword ranking selects query terms by
+        # rarity, and with this table empty every term reads as rare, so the selection
+        # keeps all of them - silently restoring the very behaviour it exists to fix.
+        # A corpus without it is a corpus whose keyword retriever is quietly broken.
+        logger.info("counting lexeme frequencies")
+        started = time.time()
+        lexemes = db.build_lexeme_stats(conn, version_id)
+        logger.info("counted %d lexemes in %.0fs", lexemes, time.time() - started)
+
         if args.build_index:
             logger.info("building HNSW index over %d chunks", stats.chunks)
             started = time.time()

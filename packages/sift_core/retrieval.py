@@ -17,12 +17,15 @@ that one retriever cannot dominate on its own.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any, Literal
 
 import psycopg
 from psycopg import sql
+
+logger = logging.getLogger(__name__)
 
 RRF_K = 60
 
@@ -89,10 +92,19 @@ _TSQUERY_FOR = {
 }
 
 
-def build_idf_query(conn: psycopg.Connection[Any], version_id: int, question: str) -> str:
-    """Turn a question into an OR of only its discriminative lexemes."""
+def build_idf_query(conn: psycopg.Connection[Any], version_id: int, question: str) -> str | None:
+    """Turn a question into an OR of only its discriminative lexemes.
+
+    Returns ``None`` when the corpus has no frequency data, which is not the same as
+    "no terms survived": without counts every word looks maximally rare, so the
+    selection would keep all of them and quietly behave like unfiltered ANY semantics.
+    The caller falls back explicitly rather than believing a filter that did nothing.
+    """
     from packages.sift_core import db
     from packages.sift_core.keywords import select_discriminative
+
+    if not db.has_lexeme_stats(conn, version_id):
+        return None
 
     with conn.cursor() as cur:
         cur.execute("SELECT tsvector_to_array(to_tsvector('english', %s)) AS lexemes", (question,))
@@ -213,6 +225,13 @@ def search(
         keyword_semantics is KeywordSemantics.IDF
     ):
         idf_query = build_idf_query(conn, version_id, query or "")
+        if idf_query is None:
+            logger.warning(
+                "no lexeme_stats for version %s; falling back to ANY keyword semantics. "
+                "Run the ingest, which builds them, or keyword ranking stays unweighted.",
+                version_id,
+            )
+            keyword_semantics = KeywordSemantics.ANY
 
     ctes: list[sql.Composable] = []
     params: list[Any] = []

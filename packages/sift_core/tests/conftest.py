@@ -44,6 +44,18 @@ requires_corpus = pytest.mark.skipif(
 @pytest.fixture(scope="session")
 def seeded_db() -> Iterator[tuple[psycopg.Connection[Any], int]]:
     """A throwaway schema holding a few real RFCs with deterministic fake vectors."""
+    # Checked before anything is created. Seeding a partial corpus turns "RFC 2616 was
+    # never downloaded" into an unrelated-looking assertion failure three tests away,
+    # which is exactly how this was found - and aborting after the schema exists would
+    # strand it for the next run, since fixture teardown never gets to execute.
+    missing = [n for n in FIXTURE_RFCS if not (CORPUS / "rfc-cache" / f"rfc{n}.txt").exists()]
+    if missing:
+        wanted = " ".join(str(n) for n in missing)
+        raise pytest.UsageError(
+            f"fixture RFCs missing from the cache: {missing}. Fetch them with: "
+            f"python -m apps.worker.fetch_corpus --rfc {wanted}"
+        )
+
     random.seed(11)
     conn = psycopg.connect(db.dsn(), row_factory=psycopg.rows.dict_row)
     with conn.cursor() as cur:
@@ -63,12 +75,14 @@ def seeded_db() -> Iterator[tuple[psycopg.Connection[Any], int]]:
 
     for number in FIXTURE_RFCS:
         path = CORPUS / "rfc-cache" / f"rfc{number}.txt"
-        if not path.exists():
-            continue
         doc = parse_rfc(number, path.read_text(errors="replace"))
         chunks = chunk_document(doc, by_num[number], cfg)
         vectors = [[random.random() for _ in range(DIM)] for _ in chunks]
         db.replace_document_chunks(conn, version_id, number, chunks, vectors)
+
+    # Retrieval selects query terms by rarity, so the fixture needs the same frequency
+    # data a real ingest builds - otherwise these tests exercise a fallback path.
+    db.build_lexeme_stats(conn, version_id)
 
     yield conn, version_id
 

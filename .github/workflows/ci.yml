@@ -65,14 +65,20 @@ jobs:
           path: data
           # Keyed on the golden set too: adding a question that cites a new RFC has to
           # miss the cache, or validation would run against a slice predating it.
-          key: rfc-corpus-${{ hashFiles('apps/worker/fetch_corpus.py', 'eval/golden/*.yaml') }}
+          key: >-
+            rfc-corpus-${{ hashFiles('apps/worker/fetch_corpus.py', 'eval/golden/*.yaml',
+            'packages/sift_core/tests/conftest.py') }}
 
       # Not gated on a cache hit. The fetcher already skips documents on disk, so
       # running it unconditionally costs nothing on a hit and keeps a stale or partial
       # cache from silently becoming a validation failure.
-      - name: Fetch the RFCs the golden set cites
+      # Both sources of truth, so neither can drift: the labels name what validation
+      # needs, and the fixture names what the integration tests seed.
+      - name: Fetch the RFCs the tests need
         run: |
-          python -m apps.worker.fetch_corpus --rfc $(python -m eval.golden_set --rfcs)
+          python -m apps.worker.fetch_corpus --rfc \
+            $(python -m eval.golden_set --rfcs) \
+            $(python -c "from packages.sift_core.tests.conftest import FIXTURE_RFCS; print(*FIXTURE_RFCS)")
 
       - name: Validate the golden set
         run: python -m eval.validate_golden

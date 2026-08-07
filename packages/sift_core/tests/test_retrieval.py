@@ -8,6 +8,7 @@ from typing import Any
 import psycopg
 import pytest
 
+from packages.sift_core import db
 from packages.sift_core.retrieval import (
     DEFAULT_KEYWORD_WEIGHT,
     RRF_K,
@@ -45,6 +46,28 @@ def test_section_titles_are_weighted_above_body_text(
     hits = search(conn, version_id, query="Host header field", mode="keyword", k=5)
     titles = [(h.section_title or "").lower() for h in hits[:3]]
     assert any("host" in t for t in titles)
+
+
+def test_missing_lexeme_stats_falls_back_loudly(
+    seeded_db: tuple[psycopg.Connection[Any], int],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A corpus without frequency data must warn, not quietly stop filtering.
+
+    With the table empty every word looks maximally rare, so rarity selection keeps all
+    of them and keyword ranking silently reverts to the unweighted behaviour the whole
+    feature exists to remove. A shipped corpus in that state looked entirely healthy.
+    """
+    conn, version_id = seeded_db
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM lexeme_stats WHERE version_id = %s", (version_id,))
+    try:
+        with caplog.at_level("WARNING"):
+            hits = search(conn, version_id, query="417 Expectation Failed", mode="keyword", k=5)
+        assert hits, "the fallback must still retrieve, not return nothing"
+        assert any("lexeme_stats" in r.message for r in caplog.records)
+    finally:
+        db.build_lexeme_stats(conn, version_id)
 
 
 def test_hybrid_fuses_both_retrievers(

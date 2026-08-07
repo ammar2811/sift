@@ -366,6 +366,17 @@ def build_lexeme_stats(conn: psycopg.Connection[Any], version_id: int) -> int:
     return int(rows)
 
 
+def has_lexeme_stats(conn: psycopg.Connection[Any], version_id: int) -> bool:
+    """Whether frequency data exists for this version.
+
+    Worth asking separately, because an empty table is indistinguishable from "every
+    one of these words is rare" once the counts come back defaulted to zero.
+    """
+    with conn.cursor() as cur:
+        cur.execute("SELECT 1 FROM lexeme_stats WHERE version_id = %s LIMIT 1", (version_id,))
+        return cur.fetchone() is not None
+
+
 def lexeme_document_counts(
     conn: psycopg.Connection[Any], version_id: int, lexemes: Sequence[str]
 ) -> dict[str, int]:
