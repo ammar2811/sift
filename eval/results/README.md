@@ -262,6 +262,41 @@ One behavioural consequence worth stating: results are no longer strictly ordere
 fusion score. A deferred chunk can outscore the one promoted past it, and ranking it
 lower is what buys the breadth.
 
+### The keyword retriever barely earns its place any more
+
+Smoke-testing the deployment turned up a regression the aggregates had hidden. "What
+must a client do when it receives a 417 response?" - the question the whole IDF
+investigation was built on - had slipped from **first to fourth**, behind three chunks
+of RFC 9022. The question still passes at k=5, so no metric moved.
+
+The obvious diagnosis was wrong. RFC 9022 contains no "417" anywhere; only 12 chunks in
+158,205 do and none are its. It won on the **dense** side, and the keyword retriever
+that ranks 9110:15.5.18 first contributes about a tenth of a dense hit at
+`keyword_weight=0.1`, so it cannot outvote it. Re-sweeping the weight on the current
+corpus does not fix it - it makes everything worse:
+
+| keyword weight | recall@1 | recall@5 | recall@10 | MRR | nDCG@10 |
+|---|---|---|---|---|---|
+| 0.0 (dense only) | **0.4712** | 0.7404 | 0.7692 | **0.6290** | **0.6788** |
+| **0.1** (kept) | 0.4423 | **0.7500** | **0.7885** | 0.6206 | 0.6753 |
+| 0.2 | 0.3654 | 0.7115 | 0.7885 | 0.5750 | 0.6364 |
+| 0.3 | 0.3269 | 0.6731 | 0.7692 | 0.5361 | 0.6031 |
+| 0.5 | 0.3365 | 0.6538 | 0.7692 | 0.5249 | 0.5971 |
+
+**Dense-only now wins recall@1, MRR and nDCG@10.** Hybrid keeps its place on the two
+recall figures that decide what reaches a generation prompt, and 0.1 stays - but the
+margin is thin and the earlier claim that hybrid beats dense on every metric was true of
+the 33-document corpus and is not true here.
+
+So the 417 case is not a weighting problem and cannot be tuned away: raising the weight
+enough to rescue it costs more elsewhere than it recovers. Exact-token retrieval needs a
+mechanism that does not compete with dense on the same axis - a rerank stage, or
+boosting exact matches rather than fusing them. Recording it as an open weakness rather
+than picking the weight that flatters one query.
+
+It is also a reminder that aggregate metrics missed a visible first-to-fourth
+regression, and only opening the deployed site caught it.
+
 ### A parser bug found by reading the output
 
 A citation came back reading `RFC 9605 — Alice |  (per frame)  (per packet) |`. An
@@ -429,8 +464,11 @@ the agentic layer, which can walk the supersession graph instead of guessing.
   still informative; the absolute values are not.
 - Result diversification does not exist, and single-document monopolization is now the
   largest measured failure mode - larger than the reranking gap.
-- The tuning below (keyword weight, semantics, candidate width) was chosen on corpora of
-  33 and 1,449 documents. Neither transferred well the last time the corpus changed, so
-  none of it should be assumed optimal on 1,671 until re-swept.
+- Keyword weight has been re-swept on 1,671 documents; semantics and candidate width
+  have not, and neither transferred well the last time the corpus changed.
+- Exact-token questions ("417", "CRLF") are a known weakness that weighting cannot fix,
+  and the eval set may under-represent them - the 417 regression cost no metric at all.
+- Latency is measured from this machine against the B1ms, so it includes internet
+  round-trip and is not a server-side number.
 - Latency is measured against a local Postgres with a warm cache, not the B1ms.
 - No answer-quality numbers exist yet, and none are claimed.

@@ -41,6 +41,11 @@ RRF_K = 60
 #
 # Keyword still earns its place, but a smaller one: it is what finds exact tokens such
 # as "417" or "CRLF" that embeddings blur, and that is a narrow job.
+#
+# Re-swept on 1,671 documents, where the margin got thinner still. Dense alone now wins
+# recall@1 (0.4712 vs 0.4423), MRR and nDCG@10; 0.1 is kept because it wins recall@5 and
+# recall@10, which are what decide whether the answer reaches a generation prompt at all.
+# Raising the weight only makes things worse - 0.2 costs 8 points of recall@1.
 DEFAULT_KEYWORD_WEIGHT = 0.1
 # Candidates pulled from each retriever before fusion. Wider than the final k so the
 # reranking stage has genuine choice; narrower than the corpus so it stays fast.
