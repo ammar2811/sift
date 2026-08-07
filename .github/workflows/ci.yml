@@ -60,18 +60,19 @@ jobs:
         run: mypy packages apps eval
 
       - name: Cache the RFC corpus
-        id: corpus
         uses: actions/cache@v4
         with:
           path: data
-          # The corpus is immutable once fetched; the key only changes when the
-          # fetcher does. This keeps CI from re-downloading from the RFC Editor.
-          key: rfc-corpus-${{ hashFiles('apps/worker/fetch_corpus.py') }}
+          # Keyed on the golden set too: adding a question that cites a new RFC has to
+          # miss the cache, or validation would run against a slice predating it.
+          key: rfc-corpus-${{ hashFiles('apps/worker/fetch_corpus.py', 'eval/golden/*.yaml') }}
 
-      - name: Fetch a corpus slice
-        if: steps.corpus.outputs.cache-hit != 'true'
+      # Not gated on a cache hit. The fetcher already skips documents on disk, so
+      # running it unconditionally costs nothing on a hit and keeps a stale or partial
+      # cache from silently becoming a validation failure.
+      - name: Fetch the RFCs the golden set cites
         run: |
-          python -m apps.worker.fetch_corpus --rfc 9110 2616 9293 9112 9111 2119
+          python -m apps.worker.fetch_corpus --rfc $(python -m eval.golden_set --rfcs)
 
       - name: Validate the golden set
         run: python -m eval.validate_golden
@@ -92,9 +93,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # No version here on purpose: the `packageManager` field in apps/web/package.json
-      # pins it, and specifying both makes the action fail with a version conflict.
+      # No version here on purpose: the `packageManager` field pins it, and specifying
+      # both makes the action fail with a version conflict. The path is explicit because
+      # `defaults.run.working-directory` applies only to `run` steps - an action still
+      # starts at the repository root, where there is no package.json to read.
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: apps/web/package.json
 
       - uses: actions/setup-node@v4
         with:

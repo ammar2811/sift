@@ -154,3 +154,31 @@ def load_golden_set(directory: Path | None = None) -> GoldenSet:
             questions.append(question)
 
     return GoldenSet(questions)
+
+
+def _main() -> int:
+    """``python -m eval.golden_set --rfcs`` -> the RFC numbers the labels reference.
+
+    CI needs to fetch exactly these documents before it can validate the labels. Naming
+    them here rather than hardcoding a list in the workflow means adding a question that
+    cites a new RFC cannot leave CI fetching a corpus slice that no longer covers it.
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Inspect the golden set.")
+    parser.add_argument(
+        "--rfcs", action="store_true", help="print the referenced RFC numbers, space separated"
+    )
+    args = parser.parse_args()
+
+    golden = load_golden_set()
+    if args.rfcs:
+        print(" ".join(str(n) for n in sorted(golden.rfc_numbers())))
+        return 0
+
+    parser.print_help()
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(_main())

@@ -4,6 +4,12 @@
 
 FROM python:3.12-slim AS base
 
+# GHCR attaches a package to a repository when a pushed image carries this label. An
+# unlinked package is owned by whoever first pushed it, and the repository's
+# GITHUB_TOKEN gets 403 on it however many `packages: write` permissions the workflow
+# declares - which is exactly how the publish workflow first failed.
+LABEL org.opencontainers.image.source="https://github.com/ammar2811/sift"
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
