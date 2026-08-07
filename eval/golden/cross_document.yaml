@@ -47,9 +47,13 @@ questions:
     question: RFC 5246 defined TLS 1.2. What is the current TLS specification and how does it differ?
     type: cross_document
     reference_answer: >-
-      RFC 8446 defines TLS 1.3, which obsoletes RFC 5246. It removes legacy key exchange
-      and cipher options and shortens the handshake to one round trip.
-    relevant: ["8446:1.2", "8446:1"]
+      RFC 9846 is the current TLS 1.3 specification, obsoleting both RFC 5246 and the
+      earlier TLS 1.3 document RFC 8446. It removes legacy key exchange and cipher
+      options and shortens the handshake to one round trip.
+    # Relabelled from 8446: RFC 9846 obsoleted it. The point of this question is that
+    # the answer must name the spec in force, so a label naming a superseded document
+    # scores the correct answer as a miss - which is exactly what it was doing.
+    relevant: ["9846:1.2", "9846:1"]
     must_mention: ["1.3"]
 
   - id: xdoc-http-methods-current
@@ -82,10 +86,11 @@ questions:
     question: Does the current TLS specification still allow TLS 1.2, and what does it say about older versions?
     type: cross_document
     reference_answer: >-
-      RFC 8446 permits negotiating earlier versions for backwards compatibility but
+      RFC 9846 permits negotiating earlier versions for backwards compatibility but
       updates TLS 1.2 usage, and separate best-practice guidance deprecates the oldest
       versions.
-    relevant: ["8446:1.3", "8446:4.1.3"]
+    # Relabelled from 8446, which RFC 9846 obsoleted. 4.1.3 became 4.2.3.
+    relevant: ["9846:1.3", "9846:4.2.3"]
 
   - id: xdoc-dns-over-https-vs-classic
     question: RFC 1035 defined DNS over UDP and TCP. How is DNS carried over HTTPS?

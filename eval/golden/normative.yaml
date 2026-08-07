@@ -110,7 +110,8 @@ questions:
     reference_answer: >-
       A client that receives the downgrade sentinel value in the last eight bytes of the
       ServerHello Random MUST abort the handshake with an illegal_parameter alert.
-    relevant: ["8446:4.1.3"]
+    # Relabelled from 8446:4.1.3, which RFC 9846 renumbered to 4.2.3 when it obsoleted it.
+    relevant: ["9846:4.2.3"]
     must_mention: ["abort"]
 
   - id: norm-tls13-certificate-verify
@@ -119,7 +120,8 @@ questions:
     reference_answer: >-
       If the verification of the CertificateVerify signature fails, the receiver MUST
       terminate the handshake with a decrypt_error alert.
-    relevant: ["8446:4.4.3"]
+    # Relabelled from 8446:4.4.3, which RFC 9846 renumbered to 4.5.2 when it obsoleted it.
+    relevant: ["9846:4.5.2"]
     must_mention: ["MUST"]
 
   - id: norm-smtp-line-length

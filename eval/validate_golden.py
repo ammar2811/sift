@@ -14,14 +14,41 @@ import sys
 from pathlib import Path
 
 from eval.golden_set import GOLDEN_DIR, QuestionType, load_golden_set
+from packages.sift_core.rfc_index import load_index
 from packages.sift_core.rfc_parser import parse_rfc
 
-CACHE = Path(__file__).resolve().parents[1] / "data" / "rfc-cache"
+DATA = Path(__file__).resolve().parents[1] / "data"
+CACHE = DATA / "rfc-cache"
+INDEX = DATA / "rfc-index.xml"
+
+
+def _obsolete_labels(golden: object) -> list[str]:
+    """Labels pointing at a document some other RFC has superseded.
+
+    Corpus selection keeps only what is currently in force, so a label naming a
+    superseded document can never be retrieved - it scores the right answer as a total
+    miss. Five TLS questions were labelled against RFC 8446 after RFC 9846 obsoleted it,
+    and retrieval was returning the correct 9846 sections while measuring zero recall.
+    """
+    if not INDEX.exists():
+        return []
+    by_number = {m.number: m for m in load_index(INDEX)}
+    problems = []
+    for question in golden:  # type: ignore[attr-defined]
+        for ref in question.relevant:
+            meta = by_number.get(ref.rfc_number)
+            if meta is not None and not meta.is_current:
+                successors = ", ".join(str(n) for n in sorted(meta.obsoleted_by)) or "unknown"
+                problems.append(
+                    f"{question.id}: RFC{ref.rfc_number} is obsoleted by {successors} "
+                    f"and is not in the corpus; relabel to the specification in force"
+                )
+    return problems
 
 
 def main() -> int:
     golden = load_golden_set(GOLDEN_DIR)
-    problems: list[str] = []
+    problems: list[str] = _obsolete_labels(golden)
     parsed: dict[int, dict[str, str]] = {}
 
     def sections_for(number: int) -> dict[str, str] | None:

@@ -190,5 +190,6 @@ questions:
     reference_answer: >-
       The client offers a list of cipher suites, a supported_groups extension with key
       shares, and signature algorithms in its ClientHello.
-    relevant: ["8446:4.1.1"]
+    # Relabelled from 8446:4.1.1, which RFC 9846 renumbered to 4.2.1 when it obsoleted it.
+    relevant: ["9846:4.2.1"]
     must_mention: ["cipher suites", "ClientHello"]
