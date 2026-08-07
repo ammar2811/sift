@@ -95,7 +95,7 @@ def evaluate_question(
     k: int,
     candidates: int,
     keyword_weight: float = DEFAULT_KEYWORD_WEIGHT,
-    keyword_semantics: KeywordSemantics = KeywordSemantics.ANY,
+    keyword_semantics: KeywordSemantics = KeywordSemantics.IDF,
 ) -> QuestionResult:
     started = time.perf_counter()
     embedding = (
@@ -158,7 +158,7 @@ def run_evaluation(
     candidates: int,
     label: str,
     keyword_weight: float = DEFAULT_KEYWORD_WEIGHT,
-    keyword_semantics: KeywordSemantics = KeywordSemantics.ANY,
+    keyword_semantics: KeywordSemantics = KeywordSemantics.IDF,
 ) -> RunResult:
     settings = get_settings()
     provider = build_embedding_provider(settings)
@@ -254,7 +254,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--candidates", type=int, default=50)
     p.add_argument("--keyword-weight", type=float, default=DEFAULT_KEYWORD_WEIGHT)
     p.add_argument(
-        "--keyword-semantics", default="any", choices=[s.value for s in KeywordSemantics]
+        "--keyword-semantics", default="idf", choices=[s.value for s in KeywordSemantics]
     )
     p.add_argument("--label", default=None, help="name for this run (default: mode)")
     p.add_argument("--golden-dir", type=Path, default=GOLDEN_DIR)

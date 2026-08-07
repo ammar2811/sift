@@ -69,9 +69,43 @@ semantics, which helped on the small corpus, hurts here: ORing admits every
 common-word match and nothing distinguishes them afterwards.
 
 This is the gap BM25 exists to fill, and Postgres full-text search does not implement
-it. The fix is IDF-aware scoring - either computing document frequencies and dropping
-or down-weighting non-discriminative query terms, or scoring BM25 directly - and it
-should be measured on the full corpus, not the sweep corpus that hid the problem.
+it.
+
+### The fix, and what it recovered
+
+Document frequencies for every word are now computed once per corpus version into
+`lexeme_stats` (168,801 distinct words, 3 seconds), and words occupying more than 5% of
+the corpus are dropped from the query *before* ranking. On the measured example the
+question reduces to the single term `417`, and RFC 9110 Section 15.5.18 goes from
+absent to first.
+
+Measured across all 52 scoreable questions on the full corpus:
+
+| tsquery mode | recall@1 | recall@5 | recall@10 | MRR | nDCG@10 | cross-doc r@5 |
+|---|---|---|---|---|---|---|
+| `all` (AND) | 0.3173 | 0.5096 | 0.5577 | 0.4314 | 0.4528 | 0.4167 |
+| `any` (OR) | 0.2596 | 0.5000 | 0.5769 | 0.3875 | 0.4248 | 0.3750 |
+| **`idf`** | 0.2885 | **0.5192** | **0.5769** | 0.4196 | 0.4428 | **0.4583** |
+
+The keyword weight had to be re-tuned too - 0.2, chosen on the sweep corpus, is wrong
+here - and 0.1 wins on the full corpus. Combined:
+
+| | before (any, w=0.2) | **after (idf, w=0.1)** | change |
+|---|---|---|---|
+| recall@1 | 0.2596 | **0.3365** | +30% |
+| recall@5 | 0.5000 | **0.5192** | +4% |
+| recall@10 | 0.5769 | 0.5769 | unchanged |
+| MRR | 0.3875 | **0.4489** | +16% |
+| nDCG@10 | 0.4248 | **0.4641** | +9% |
+| cross-document recall@5 | 0.3750 | **0.4583** | +22% |
+| p50 latency | 711 ms | **529 ms** | -26% |
+
+**It is an improvement, not a rescue.** recall@10 does not move at all: the fix
+reorders what was already being retrieved and recovers the cases where a rare token was
+being outvoted, but the 42% of questions with no labelled section anywhere in the top 10
+are still missing for some other reason. Finding that is the next piece of work, and
+the honest headline remains **recall@5 = 0.52 on the full corpus**, not the 0.83 the
+sweep corpus suggested.
 
 ## Corpus under test
 

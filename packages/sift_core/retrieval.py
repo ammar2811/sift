@@ -31,11 +31,14 @@ RRF_K = 60
 # metric, because keyword recall@5 is 0.29 against dense's 0.77 and the weaker ranking
 # drags mediocre chunks up.
 #
-# 0.2 was chosen from `python -m eval.sweep keyword-weight` because it beats or ties
-# dense-only on every metric rather than trading one for another. Keyword still earns
-# its place: it is what reliably finds exact tokens such as "417" or "CRLF" that
-# embeddings blur.
-DEFAULT_KEYWORD_WEIGHT = 0.2
+# 0.1, re-tuned on the full 1,449-document corpus. An earlier 0.2 was chosen on the
+# 33-document sweep corpus and does not transfer - one more way that corpus flattered
+# every conclusion drawn from it. On the real corpus 0.1 gives the best recall@1, MRR,
+# nDCG@10 and cross-document recall; only recall@5 marginally prefers dense alone.
+#
+# Keyword still earns its place, but a smaller one: it is what finds exact tokens such
+# as "417" or "CRLF" that embeddings blur, and that is a narrow job.
+DEFAULT_KEYWORD_WEIGHT = 0.1
 # Candidates pulled from each retriever before fusion. Wider than the final k so the
 # reranking stage has genuine choice; narrower than the corpus so it stays fast.
 DEFAULT_CANDIDATES = 50
@@ -50,6 +53,10 @@ class SearchMode(StrEnum):
 class KeywordSemantics(StrEnum):
     """How a natural-language question becomes a tsquery.
 
+    ``IDF`` is the default at corpus scale. See ``keywords.py``: ts_rank_cd has no
+    inverse-document-frequency term, so words too common to discriminate are dropped
+    from the query before ranking rather than being weighted down during it.
+
     ``ALL`` uses ``websearch_to_tsquery``, which joins every term with AND. That suits
     a search box where the user types keywords, but it is close to useless for a
     question: "What does the HTTP Host header field provide?" becomes
@@ -62,6 +69,7 @@ class KeywordSemantics(StrEnum):
 
     ALL = "all"
     ANY = "any"
+    IDF = "idf"
 
 
 # NULL from an empty query makes `tsv @@ query` NULL, so no rows match and nothing
@@ -71,6 +79,33 @@ _TSQUERY_ANY = (
     "tsvector_to_array(to_tsvector('english', %s)), ' | '), ''))"
 )
 _TSQUERY_ALL = "websearch_to_tsquery('english', %s)"
+# IDF mode passes an already-built tsquery string, so it is parsed directly.
+_TSQUERY_IDF = "to_tsquery('english', nullif(%s, ''))"
+
+_TSQUERY_FOR = {
+    KeywordSemantics.ANY: _TSQUERY_ANY,
+    KeywordSemantics.ALL: _TSQUERY_ALL,
+    KeywordSemantics.IDF: _TSQUERY_IDF,
+}
+
+
+def build_idf_query(conn: psycopg.Connection[Any], version_id: int, question: str) -> str:
+    """Turn a question into an OR of only its discriminative lexemes."""
+    from packages.sift_core import db
+    from packages.sift_core.keywords import select_discriminative
+
+    with conn.cursor() as cur:
+        cur.execute("SELECT tsvector_to_array(to_tsvector('english', %s)) AS lexemes", (question,))
+        row = cur.fetchone()
+    lexemes = list(row["lexemes"] or []) if row else []
+    if not lexemes:
+        return ""
+
+    counts = db.lexeme_document_counts(conn, version_id, lexemes)
+    total = db.corpus_chunk_count(conn, version_id)
+    kept = select_discriminative(counts, total)
+    # Lexemes come from to_tsvector, so they are already normalised and safe to join.
+    return " | ".join(kept)
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,7 +188,7 @@ def search(
     candidates: int = DEFAULT_CANDIDATES,
     filters: SearchFilters | None = None,
     rrf_k: int = RRF_K,
-    keyword_semantics: KeywordSemantics = KeywordSemantics.ANY,
+    keyword_semantics: KeywordSemantics = KeywordSemantics.IDF,
     dense_weight: float = 1.0,
     keyword_weight: float = DEFAULT_KEYWORD_WEIGHT,
 ) -> list[Hit]:
@@ -170,6 +205,14 @@ def search(
 
     where, filter_params = filters.where()
     vec = str(list(embedding)) if embedding is not None else None
+
+    # In IDF mode the query is narrowed to its discriminative words before it reaches
+    # the ranking function, which cannot weight by rarity itself.
+    idf_query: str | None = None
+    if mode in (SearchMode.KEYWORD, SearchMode.HYBRID) and (
+        keyword_semantics is KeywordSemantics.IDF
+    ):
+        idf_query = build_idf_query(conn, version_id, query or "")
 
     ctes: list[sql.Composable] = []
     params: list[Any] = []
@@ -212,12 +255,11 @@ def search(
                 """
             ).format(
                 where=where,
-                tsquery=sql.SQL(
-                    _TSQUERY_ANY if keyword_semantics is KeywordSemantics.ANY else _TSQUERY_ALL
-                ),
+                tsquery=sql.SQL(_TSQUERY_FOR[keyword_semantics]),
             )
         )
-        params += [query, version_id, *filter_params, candidates]
+        keyword_input = idf_query if idf_query is not None else query
+        params += [keyword_input, version_id, *filter_params, candidates]
 
     if mode is SearchMode.HYBRID:
         fusion = sql.SQL(

@@ -132,8 +132,15 @@ def test_keyword_mode_finds_an_exact_status_code(client: TestClient) -> None:
 
 
 def test_hybrid_mode_exposes_both_ranks(client: TestClient) -> None:
+    """A query with a rare token should surface results both retrievers agree on.
+
+    The query matters. "Host header field" reduces under IDF filtering to just "host",
+    which occurs in 4.6% of chunks - thousands of diffuse keyword matches that need not
+    intersect the dense top results at all. A rare token like "417" is exactly what the
+    keyword side exists to catch, so both ranks appear.
+    """
     body = client.post(
-        "/api/search", json={"query": "Host header field", "mode": "hybrid", "k": 10}
+        "/api/search", json={"query": "417 Expectation Failed", "mode": "hybrid", "k": 10}
     ).json()
     assert any(r["dense_rank"] is not None for r in body["results"])
     assert any(r["keyword_rank"] is not None for r in body["results"])

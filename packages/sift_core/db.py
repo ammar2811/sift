@@ -342,6 +342,52 @@ def ingested_rfc_numbers(conn: psycopg.Connection[Any], version_id: int) -> set[
         return {int(row["rfc_number"]) for row in cur.fetchall()}
 
 
+def build_lexeme_stats(conn: psycopg.Connection[Any], version_id: int) -> int:
+    """Count how many chunks contain each word, for this corpus version.
+
+    This is the inverse-document-frequency data PostgreSQL's own ranking lacks. Built
+    once after ingestion because ``ts_stat`` scans every row, which is far too slow to
+    do per query.
+    """
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM lexeme_stats WHERE version_id = %s", (version_id,))
+        cur.execute(
+            """
+            INSERT INTO lexeme_stats (version_id, lexeme, ndoc)
+            SELECT %s, word, ndoc
+            FROM ts_stat(
+                format('SELECT tsv FROM chunks WHERE version_id = %%s', %s::text)
+            )
+            """,
+            (version_id, version_id),
+        )
+        rows = cur.rowcount
+    conn.commit()
+    return int(rows)
+
+
+def lexeme_document_counts(
+    conn: psycopg.Connection[Any], version_id: int, lexemes: Sequence[str]
+) -> dict[str, int]:
+    """Document frequency for each supplied lexeme. Missing words count as 0."""
+    if not lexemes:
+        return {}
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT lexeme, ndoc FROM lexeme_stats WHERE version_id = %s AND lexeme = ANY(%s)",
+            (version_id, list(lexemes)),
+        )
+        found = {str(r["lexeme"]): int(r["ndoc"]) for r in cur.fetchall()}
+    return {lexeme: found.get(lexeme, 0) for lexeme in lexemes}
+
+
+def corpus_chunk_count(conn: psycopg.Connection[Any], version_id: int) -> int:
+    with conn.cursor() as cur:
+        cur.execute("SELECT count(*) AS n FROM chunks WHERE version_id = %s", (version_id,))
+        row = cur.fetchone()
+    return int(row["n"]) if row else 0
+
+
 def corpus_stats(conn: psycopg.Connection[Any], version_id: int) -> dict[str, Any]:
     with conn.cursor() as cur:
         cur.execute(

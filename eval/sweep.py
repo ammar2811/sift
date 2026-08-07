@@ -44,7 +44,7 @@ def mode_variants() -> Iterator[Variant]:
 
 
 def semantics_variants() -> Iterator[Variant]:
-    for semantics in (KeywordSemantics.ALL, KeywordSemantics.ANY):
+    for semantics in (KeywordSemantics.ALL, KeywordSemantics.ANY, KeywordSemantics.IDF):
         yield Variant(f"tsquery={semantics.value}", {"keyword_semantics": semantics})
 
 

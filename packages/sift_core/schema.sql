@@ -100,6 +100,25 @@ CREATE INDEX IF NOT EXISTS chunks_section_idx ON chunks (version_id, rfc_number,
 CREATE INDEX IF NOT EXISTS chunks_normative_idx
     ON chunks (version_id) WHERE has_normative;
 
+-- How many chunks contain each word, per corpus version.
+--
+-- PostgreSQL's ts_rank_cd has no inverse-document-frequency term: a match on "417",
+-- which occurs in 12 of 129,109 chunks, counts exactly as much as a match on
+-- "response". At 7,364 chunks that rarely changed an outcome; at 129,109 it decides
+-- them, and the correct chunk for "what must a client do on a 417 response" scored
+-- 1.40 against 9.20 for a DHCP section that merely repeats common words.
+--
+-- Storing document frequencies lets the query side drop words that cannot discriminate
+-- before ranking ever happens, which is the part BM25 would otherwise supply.
+CREATE TABLE IF NOT EXISTS lexeme_stats (
+    version_id integer NOT NULL REFERENCES corpus_versions (id) ON DELETE CASCADE,
+    lexeme     text    NOT NULL,
+    ndoc       integer NOT NULL,
+    PRIMARY KEY (version_id, lexeme)
+);
+
+CREATE INDEX IF NOT EXISTS lexeme_stats_ndoc_idx ON lexeme_stats (version_id, ndoc);
+
 -- The HNSW index is deliberately NOT created here. Building it before a bulk load
 -- makes ingestion far slower and yields a worse graph than building it once the rows
 -- are in place, so create_vector_index() is called after ingestion completes.
