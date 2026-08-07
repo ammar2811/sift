@@ -145,16 +145,20 @@ Corpus: 1,449 → 1,671 documents, 129,109 → 158,205 chunks.
 
 Same retrieval configuration throughout; only the corpus and the labels changed.
 
-| metric | 1,449 docs, stale labels | **1,671 docs, corrected** | change |
+| metric | 1,449 docs, stale labels | 1,671 docs, corrected | **+ diversification** |
 |---|---|---|---|
-| recall@1 | 0.3365 | **0.4423** | +31% |
-| recall@5 | 0.5192 | **0.7500** | +44% |
-| recall@10 | 0.5769 | **0.7788** | +35% |
-| MRR | 0.4489 | **0.6060** | +35% |
-| nDCG@10 | 0.4641 | **0.6408** | +38% |
-| factual recall@5 | 0.5455 | **1.0000** | +83% |
-| cross-document recall@5 | 0.4583 | **0.4583** | unchanged |
-| p50 latency | 529 ms | 533 ms | unchanged |
+| recall@1 | 0.3365 | 0.4423 | **0.4423** |
+| recall@5 | 0.5192 | 0.7500 | **0.7500** |
+| recall@10 | 0.5769 | 0.7788 | **0.7885** |
+| MRR | 0.4489 | 0.6060 | **0.6222** |
+| nDCG@10 | 0.4641 | 0.6408 | **0.6761** |
+| factual recall@5 | 0.5455 | 1.0000 | **1.0000** |
+| cross-document recall@5 | 0.4583 | 0.4583 | **0.4167** |
+| p50 latency | 529 ms | 533 ms | **452 ms** |
+
+Cross-document recall@5 is the one figure that went backwards under diversification, and
+it is a real cost rather than a rounding artefact: those questions are the ones most
+likely to want several sections of the single successor document.
 
 **This is not a retrieval improvement.** Nothing in the ranking changed. It is the
 measurement being made against a corpus that contains the answers, and it is the reason
@@ -202,11 +206,61 @@ the earlier corpus never showed: **one document takes every slot.**
 
 Both retrievers concentrate on the same document rather than disagreeing usefully: an
 IDF-selected rare term that happens to be common *inside* one document makes every
-keyword hit come from it. Separately, 25% of top-10 slots were already repeats of the
-same section. Diversification - a per-document cap in the fused result, or MMR over the
-candidate pool - is the next lever, and it has to be measured rather than assumed,
-because a cap trades away the case where an answer genuinely spans several sections of
-one specification.
+keyword hit come from it. Separately, 27% of top-10 slots were repeats of a section
+already shown.
+
+### Diversification: two caps, and neither works alone
+
+Chunks over a cap are deferred rather than dropped, so if the caps cannot fill k the
+best of them come back. A cap that could shrink the result would be trading recall for
+tidiness, and there are questions whose answer genuinely does span one specification.
+
+| config | recall@1 | recall@5 | recall@10 | MRR | nDCG@10 |
+|---|---|---|---|---|---|
+| no cap | 0.4423 | 0.7500 | 0.7788 | 0.6060 | 0.6411 |
+| per-section 1 | 0.4423 | **0.7596** | 0.7692 | 0.6176 | 0.6563 |
+| per-document 3 | 0.4423 | 0.7404 | 0.7596 | 0.6070 | 0.6467 |
+| per-document 2 | 0.4423 | 0.7500 | 0.7692 | 0.6138 | 0.6603 |
+| **per-document 3 + per-section 1** | 0.4423 | 0.7500 | **0.7885** | 0.6222 | 0.6761 |
+| per-document 2 + per-section 1 | 0.4423 | 0.7308 | 0.7596 | **0.6237** | **0.6786** |
+
+**Each cap alone loses recall@10.** Capping documents at 3 is the worst configuration
+tried, below no cap on every recall figure. Only the combination beats no cap on every
+metric at once, which is not what I expected going in and is the reason the sweep ran
+six configurations rather than confirming one.
+
+Tightening to 2 per document buys the best MRR and nDCG and gives up the most recall@5.
+Recall wins the tie-break: what reaches a generation prompt is a handful of chunks, and
+a missing one cannot be recovered by better ordering.
+
+recall@1 is identical in every row, as it must be - a cap cannot bind before a document
+has contributed anything. That it holds across all six is a small check that the
+implementation does what it claims.
+
+**On the question that motivated the work:**
+
+| | before | after |
+|---|---|---|
+| `norm-websocket-masking`, documents in top 10 | 1 (RFC 9605 × 10) | 6 |
+| its recall@10 | 0.0 | **0.5** |
+| duplicate-section slots, corpus-wide | 27% | **0%** |
+| distinct documents per query | 3.8 | **6.3** |
+
+RFC 6455 was indexed with 222 chunks the whole time and never surfaced. It now does.
+
+**`norm-cache-heuristic-freshness` was not fixed**, and it is the useful counterexample:
+monopolization broke (1 document to 4) and recall stayed at 0.0. RFC 9111 is simply not
+being retrieved, so diversity was never its problem. Not every failure with the same
+symptom has the same cause.
+
+**precision@5 falls from 0.2962 to 0.1885, and that number should be ignored here.**
+Labels are sections, so capping sections at 1 mechanically removes chunks that would
+have counted as relevant - the metric measures the deduplication, not a quality loss.
+Precision is not comparable between capped and uncapped configurations; recall is.
+
+One behavioural consequence worth stating: results are no longer strictly ordered by
+fusion score. A deferred chunk can outscore the one promoted past it, and ranking it
+lower is what buys the breadth.
 
 ### A parser bug found by reading the output
 

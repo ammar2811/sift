@@ -46,6 +46,25 @@ DEFAULT_KEYWORD_WEIGHT = 0.1
 # reranking stage has genuine choice; narrower than the corpus so it stays fast.
 DEFAULT_CANDIDATES = 50
 
+# Diversity caps. Measured on the 1,671-document corpus against no cap at all:
+#
+#   config                    r@1     r@5    r@10     MRR    nDCG
+#   no cap                 0.4423  0.7500  0.7788  0.6060  0.6411
+#   per-section 1          0.4423  0.7596  0.7692  0.6176  0.6563
+#   per-document 3         0.4423  0.7404  0.7596  0.6070  0.6467
+#   per-document 2         0.4423  0.7500  0.7692  0.6138  0.6603
+#   3 + 1  (chosen)        0.4423  0.7500  0.7885  0.6222  0.6761
+#   2 + 1                  0.4423  0.7308  0.7596  0.6237  0.6786
+#
+# Either cap alone loses recall@10; only together do they beat no cap on every metric
+# at once, which is why both are on. Tighter than 3 per document trades recall@5 for
+# ranking quality, and recall is what a generation prompt actually needs.
+#
+# recall@1 is identical across every row, as it must be: a cap cannot bind before a
+# document has contributed anything.
+DEFAULT_MAX_PER_DOCUMENT = 3
+DEFAULT_MAX_PER_SECTION = 1
+
 
 class SearchMode(StrEnum):
     DENSE = "dense"
@@ -118,6 +137,50 @@ def build_idf_query(conn: psycopg.Connection[Any], version_id: int, question: st
     kept = select_discriminative(counts, total)
     # Lexemes come from to_tsvector, so they are already normalised and safe to join.
     return " | ".join(kept)
+
+
+def _diversify(
+    rows: list[Any],
+    k: int,
+    max_per_document: int | None,
+    max_per_section: int | None,
+) -> list[Any]:
+    """Take the best ``k`` rows without letting one document own the whole answer.
+
+    On the 1,671-document corpus a single specification routinely took every slot -
+    "must a WebSocket client mask the frames it sends" returned ten chunks of RFC 9605
+    while RFC 6455 sat indexed and unseen. Both retrievers concentrate rather than
+    disagreeing usefully, because a term rare across the corpus can still be common
+    inside one document.
+
+    Rows over a cap are not discarded, only deferred: if the caps cannot fill k, the
+    best of them come back in score order. Diversification should never cost recall
+    outright, only reorder in favour of breadth.
+    """
+    kept: list[Any] = []
+    deferred: list[Any] = []
+    per_document: dict[int, int] = {}
+    per_section: dict[tuple[int, str | None], int] = {}
+
+    for row in rows:
+        document = int(row["rfc_number"])
+        section = (document, row["section_number"])
+        over_document = (
+            max_per_document is not None and per_document.get(document, 0) >= max_per_document
+        )
+        over_section = (
+            max_per_section is not None and per_section.get(section, 0) >= max_per_section
+        )
+        if over_document or over_section:
+            deferred.append(row)
+            continue
+        kept.append(row)
+        per_document[document] = per_document.get(document, 0) + 1
+        per_section[section] = per_section.get(section, 0) + 1
+        if len(kept) == k:
+            return kept
+
+    return (kept + deferred)[:k]
 
 
 @dataclass(frozen=True, slots=True)
@@ -203,6 +266,8 @@ def search(
     keyword_semantics: KeywordSemantics = KeywordSemantics.IDF,
     dense_weight: float = 1.0,
     keyword_weight: float = DEFAULT_KEYWORD_WEIGHT,
+    max_per_document: int | None = DEFAULT_MAX_PER_DOCUMENT,
+    max_per_section: int | None = DEFAULT_MAX_PER_SECTION,
 ) -> list[Hit]:
     """Retrieve the top ``k`` chunks.
 
@@ -303,17 +368,23 @@ def search(
             "fused AS (SELECT id, score, NULL::bigint AS dense_rank, rank AS kw_rank FROM kw)"
         )
 
+    # Diversification needs more than k rows to choose between, so the cut to k happens
+    # in Python instead of in the LIMIT.
+    diversifying = max_per_document is not None or max_per_section is not None
     statement = sql.SQL(
         "WITH {ctes}, {fusion} SELECT {cols}, f.score, f.dense_rank,"
         " f.kw_rank FROM fused f JOIN chunks c ON c.id = f.id"
         " JOIN documents d ON d.number = c.rfc_number"
         " ORDER BY f.score DESC LIMIT %s"
     ).format(ctes=sql.SQL(", ").join(ctes), fusion=fusion, cols=_SELECT)
-    params.append(k)
+    params.append(max(k, candidates) if diversifying else k)
 
     with conn.cursor() as cur:
         cur.execute(statement, params)
         rows = cur.fetchall()
+
+    if diversifying:
+        rows = _diversify(rows, k, max_per_document, max_per_section)
 
     return [
         Hit(

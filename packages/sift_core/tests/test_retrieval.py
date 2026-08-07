@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+from collections import Counter
 from typing import Any
 
 import psycopg
@@ -68,6 +69,54 @@ def test_missing_lexeme_stats_falls_back_loudly(
         assert any("lexeme_stats" in r.message for r in caplog.records)
     finally:
         db.build_lexeme_stats(conn, version_id)
+
+
+def test_a_document_cap_frees_slots_without_shrinking_the_result(
+    seeded_db: tuple[psycopg.Connection[Any], int], vector: list[float]
+) -> None:
+    """Capping must add breadth, never return fewer results.
+
+    Rows over the cap are deferred rather than dropped, so a query whose good answers
+    genuinely all live in one specification still fills k.
+    """
+    conn, version_id = seeded_db
+    capped = search(
+        conn,
+        version_id,
+        query="Host header field",
+        embedding=vector,
+        mode="hybrid",
+        k=10,
+        max_per_document=2,
+    )
+    assert len(capped) == 10, "the cap must be a preference, not a truncation"
+    # Rows within the cap are placed before any deferred row, so the leading slots are
+    # the diverse ones even when deferred rows backfill the tail.
+    assert len(Counter(h.rfc_number for h in capped[:4])) > 1
+
+
+def test_a_section_cap_removes_duplicate_sections(
+    seeded_db: tuple[psycopg.Connection[Any], int], vector: list[float]
+) -> None:
+    """25% of top-10 slots were repeats of a section already shown."""
+    conn, version_id = seeded_db
+    plain = search(
+        conn, version_id, query="Host header field", embedding=vector, mode="hybrid", k=10
+    )
+    capped = search(
+        conn,
+        version_id,
+        query="Host header field",
+        embedding=vector,
+        mode="hybrid",
+        k=10,
+        max_per_section=1,
+    )
+
+    def sections(hits: list[Any]) -> set[tuple[int, str | None]]:
+        return {(h.rfc_number, h.section_number) for h in hits}
+
+    assert len(sections(capped[:5])) >= len(sections(plain[:5]))
 
 
 def test_hybrid_fuses_both_retrievers(
@@ -147,12 +196,46 @@ def test_keyword_semantics_any_matches_more_than_all(
     assert len(loose) > len(strict)
 
 
-def test_results_are_ordered_by_score(
+def test_results_are_ordered_by_score_without_diversification(
     seeded_db: tuple[psycopg.Connection[Any], int], vector: list[float]
 ) -> None:
     conn, version_id = seeded_db
-    hits = search(conn, version_id, query="header", embedding=vector, mode="hybrid", k=10)
+    hits = search(
+        conn,
+        version_id,
+        query="header",
+        embedding=vector,
+        mode="hybrid",
+        k=10,
+        max_per_document=None,
+        max_per_section=None,
+    )
     assert hits == sorted(hits, key=lambda h: h.score, reverse=True)
+
+
+def test_diversification_may_rank_a_lower_score_higher(
+    seeded_db: tuple[psycopg.Connection[Any], int], vector: list[float]
+) -> None:
+    """Departing from score order is the point, not a defect.
+
+    A chunk held back by a cap can outscore the chunk promoted past it. Ranking it
+    lower is exactly what buys the breadth, so score order is not an invariant once
+    diversification is on - only the selection is score-driven, and callers that assumed
+    otherwise need to know.
+    """
+    conn, version_id = seeded_db
+    common = {"query": "header", "embedding": vector, "mode": "hybrid", "k": 10}
+    plain = search(
+        conn,
+        version_id,
+        max_per_document=None,
+        max_per_section=None,
+        **common,  # type: ignore[arg-type]
+    )
+    diverse = search(conn, version_id, **common)  # type: ignore[arg-type]
+
+    assert len(diverse) == len(plain), "diversification must not shrink the result"
+    assert len({(h.rfc_number, h.section_number) for h in diverse}) == len(diverse)
 
 
 def test_current_only_filter_excludes_obsoleted_documents(

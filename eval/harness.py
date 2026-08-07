@@ -33,6 +33,8 @@ from packages.sift_core.config import get_settings
 from packages.sift_core.providers import build_embedding_provider
 from packages.sift_core.retrieval import (
     DEFAULT_KEYWORD_WEIGHT,
+    DEFAULT_MAX_PER_DOCUMENT,
+    DEFAULT_MAX_PER_SECTION,
     KeywordSemantics,
     SearchMode,
     search,
@@ -96,6 +98,8 @@ def evaluate_question(
     candidates: int,
     keyword_weight: float = DEFAULT_KEYWORD_WEIGHT,
     keyword_semantics: KeywordSemantics = KeywordSemantics.IDF,
+    max_per_document: int | None = None,
+    max_per_section: int | None = None,
 ) -> QuestionResult:
     started = time.perf_counter()
     embedding = (
@@ -113,6 +117,8 @@ def evaluate_question(
         candidates=candidates,
         keyword_weight=keyword_weight,
         keyword_semantics=keyword_semantics,
+        max_per_document=max_per_document,
+        max_per_section=max_per_section,
     )
     latency_ms = (time.perf_counter() - started) * 1000
 
@@ -159,6 +165,8 @@ def run_evaluation(
     label: str,
     keyword_weight: float = DEFAULT_KEYWORD_WEIGHT,
     keyword_semantics: KeywordSemantics = KeywordSemantics.IDF,
+    max_per_document: int | None = None,
+    max_per_section: int | None = None,
 ) -> RunResult:
     settings = get_settings()
     provider = build_embedding_provider(settings)
@@ -186,6 +194,8 @@ def run_evaluation(
                 candidates=candidates,
                 keyword_weight=keyword_weight,
                 keyword_semantics=keyword_semantics,
+                max_per_document=max_per_document,
+                max_per_section=max_per_section,
             )
             for q in golden.scoreable
         ]
@@ -202,6 +212,8 @@ def run_evaluation(
         "candidates": candidates,
         "keyword_weight": keyword_weight,
         "keyword_semantics": keyword_semantics.value,
+        "max_per_document": max_per_document,
+        "max_per_section": max_per_section,
         "embedding_provider": provider.name,
         "dimensions": provider.dimensions,
         "chunk_config": version.get("chunk_config"),
@@ -256,6 +268,18 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument(
         "--keyword-semantics", default="idf", choices=[s.value for s in KeywordSemantics]
     )
+    p.add_argument(
+        "--max-per-document",
+        type=int,
+        default=DEFAULT_MAX_PER_DOCUMENT,
+        help="cap chunks from any one RFC in the returned top-k (0 disables the cap)",
+    )
+    p.add_argument(
+        "--max-per-section",
+        type=int,
+        default=DEFAULT_MAX_PER_SECTION,
+        help="cap chunks from any one section in the returned top-k (0 disables the cap)",
+    )
     p.add_argument("--label", default=None, help="name for this run (default: mode)")
     p.add_argument("--golden-dir", type=Path, default=GOLDEN_DIR)
     p.add_argument("--out", type=Path, default=None, help="explicit output path")
@@ -272,6 +296,10 @@ def main(argv: list[str] | None = None) -> int:
         label=label,
         keyword_weight=args.keyword_weight,
         keyword_semantics=KeywordSemantics(args.keyword_semantics),
+        # 0 means "no cap"; argparse cannot express None on the command line, and the
+        # sweep needs a way to measure the uncapped baseline.
+        max_per_document=args.max_per_document or None,
+        max_per_section=args.max_per_section or None,
     )
     print(render(run))
 
