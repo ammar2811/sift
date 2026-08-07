@@ -1,11 +1,11 @@
-# Serves the built SPA and proxies API traffic to the api container app, so the
-# browser sees one origin and no CORS preflight is needed in production.
-
-upstream sift_api {
-    # Resolved from the SIFT_API_ORIGIN environment substitution at deploy time; the
-    # default matches the Container Apps internal DNS name.
-    server api:8000;
-}
+# Rendered at container start by the nginx image's envsubst entrypoint, which
+# substitutes ${SIFT_API_ORIGIN} and ${NGINX_LOCAL_RESOLVERS}.
+#
+# ${SIFT_API_ORIGIN} must be a resolvable absolute origin. The first deploy failed
+# because the config carried an `upstream api:8000` block naming a host that exists
+# only in docker compose: nginx resolves upstream names once at startup and aborts if
+# one does not resolve, so the container died before serving a request and Container
+# Apps reported ActivationFailed with no logs at all.
 
 server {
     listen 8080;
@@ -29,22 +29,27 @@ server {
     }
 
     location /api/ {
-        proxy_pass http://sift_api;
+        proxy_pass ${SIFT_API_ORIGIN};
         proxy_http_version 1.1;
-        proxy_set_header Host $host;
+        proxy_ssl_server_name on;
+        proxy_set_header Host $proxy_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        # Streaming responses must not be buffered or the client sees nothing until
-        # the answer is complete, which defeats the point of streaming.
+        # Streaming answers must not be buffered, or the client sees nothing until the
+        # response is complete - which defeats the point of streaming.
         proxy_buffering off;
         proxy_read_timeout 300s;
     }
 
     location = /ready {
-        proxy_pass http://sift_api;
-        proxy_set_header Host $host;
+        proxy_pass ${SIFT_API_ORIGIN};
+        # Without this nginx proxies as HTTP/1.0, and Container Apps answers HTTP/1.0
+        # with 426 Upgrade Required. It is not optional just because the block is small.
+        proxy_http_version 1.1;
+        proxy_ssl_server_name on;
+        proxy_set_header Host $proxy_host;
     }
 
     # nginx's own liveness, answered without reaching the API.
