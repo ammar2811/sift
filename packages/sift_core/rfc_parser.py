@@ -23,6 +23,14 @@ _HEADING = re.compile(r"^(?P<num>\d+(?:\.\d+)*)\.?[ \t]+(?P<title>\S.*?)\s*$")
 _APPENDIX = re.compile(r"^(?:Appendix[ \t]+)?(?P<num>[A-Z](?:\.\d+)*)\.[ \t]+(?P<title>\S.*?)\s*$")
 _UNNUMBERED = re.compile(r"^(?P<title>[A-Z][A-Za-z][^.]{2,70})$")
 
+# An unnumbered heading is one line of prose. Anything laid out in columns is a diagram
+# or a definition list that merely starts at column 0 with a capital - RFC 9605's
+# "Alice |  (per frame)  (per packet) |" was being indexed as a section title, and a
+# title is weighted above body text in the tsvector, so this is not merely cosmetic.
+# Box-drawing characters never appear in a real heading, and neither does the columnar
+# gap that separates a term from its definition.
+_LAID_OUT = re.compile(r"[|+]|\S {3,}\S")
+
 _PAGE_FOOTER = re.compile(r"^.*\[Page[ \t]+\d+\][ \t]*$")
 
 # Running headers are not one fixed shape. Most read "RFC 9110  Title  June 2022",
@@ -227,6 +235,8 @@ def _is_heading(
         if _HEADER_INGREDIENT.search(title) or len(title.split()) > 10:
             return None
         if title.endswith((",", ";", ":")):
+            return None
+        if _LAID_OUT.search(title):
             return None
         if lines is not None:
             if not _followed_by_body(lines, index):

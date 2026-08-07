@@ -89,6 +89,34 @@ def test_masthead_is_not_a_heading() -> None:
     assert not any("Updates" in t for t in titles)
 
 
+def test_diagrams_and_definition_lists_are_not_headings() -> None:
+    """Column-0 lines laid out in columns are artwork, not section titles.
+
+    RFC 9605 indexed "Alice |  (per frame)  (per packet) |" as a section title, so a
+    citation rendered as that string in the UI and the tsvector gave it the weight it
+    reserves for real titles. 198 titles across 33 documents looked like this.
+    """
+    raw = """\
+Network Working Group                                          T. Example
+Request for Comments: 9999                                    Example Inc
+
+Introduction
+
+   Normal body text that follows a real heading.
+
+Alice |          (per frame)         (per packet)   |        |       |
+      |               ^                   ^         |        |       |
+
+RDATA           a variable length string of octets that describes it
+
+   More body text.
+"""
+    titles = [s.title for s in parse_rfc(9999, raw).sections]
+    assert "Introduction" in titles
+    assert not any("|" in t for t in titles)
+    assert not any(t.startswith("RDATA") for t in titles)
+
+
 def test_table_of_contents_is_not_mistaken_for_body() -> None:
     doc = parse_rfc(9919, MODERN)
     numbers = [s.number for s in doc.numbered_sections]

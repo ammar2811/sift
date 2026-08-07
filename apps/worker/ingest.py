@@ -135,7 +135,15 @@ def ingest_document(
 
 
 def corpus_scope(args: argparse.Namespace) -> str:
-    """Name the document set, so results can never be compared across different ones."""
+    """Name the document set, so results can never be compared across different ones.
+
+    ``--scope`` overrides this for repairs: when a parser or chunker fix changes how a
+    handful of documents split, those documents have to be rewritten *inside* the corpus
+    they already belong to. The document set has not changed, only its parse, so a fresh
+    scope would be wrong - and re-embedding all 1,671 to correct 33 would be worse.
+    """
+    if args.scope:
+        return str(args.scope)
     if args.rfc:
         return "adhoc"
     if args.sweep_corpus:
@@ -280,6 +288,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--activate", action="store_true", help="serve queries from this version")
     p.add_argument("--notes", default=None, help="recorded against the corpus version")
+    p.add_argument(
+        "--scope",
+        default=None,
+        help="write into an existing corpus scope instead of deriving one; for "
+        "re-ingesting specific documents after a parser fix (see corpus_scope)",
+    )
     return p
 
 

@@ -102,10 +102,120 @@ here - and 0.1 wins on the full corpus. Combined:
 
 **It is an improvement, not a rescue.** recall@10 does not move at all: the fix
 reorders what was already being retrieved and recovers the cases where a rare token was
-being outvoted, but the 42% of questions with no labelled section anywhere in the top 10
-are still missing for some other reason. Finding that is the next piece of work, and
-the honest headline remains **recall@5 = 0.52 on the full corpus**, not the 0.83 the
-sweep corpus suggested.
+being outvoted, but 42% of questions still had no labelled section anywhere in the top
+10. That turned out not to be a retrieval problem at all - see the next section.
+
+### The 42% ceiling was measurement error, not retrieval failure
+
+Of the 21 questions with nothing relevant in the top 10, **18 were scored against
+documents the corpus does not contain**. No retrieval strategy could have moved them,
+which is why candidate width, `ef_search`, keyword semantics and keyword weight all
+left the number at exactly 0.5769. Only **3 of 52** were genuine retrieval failures.
+
+Two unrelated causes, found by listing what each failing question retrieved instead of
+its label:
+
+**Five TLS questions were labelled against RFC 8446, which RFC 9846 obsoleted in 2026.**
+Selection indexes only what is in force, so those labels named sections that are not
+there. RFC 9846 also renumbered: 4.1.1, 4.1.3 and 4.4.3 became 4.2.1, 4.2.3 and 4.5.2.
+Retrieval had been returning the correct successor sections and scoring zero for it -
+`9846:4.2.3` was ranked **first** for the downgrade question. The system was right and
+the measurement was wrong. `validate_golden` now rejects any label naming an obsoleted
+document, so a specification being superseded mid-project fails validation instead of
+appearing as a retrieval regression.
+
+**Thirteen questions targeted specifications that are current but were never indexed:**
+WebSocket, OAuth 2.0, JWT and DNS-over-HTTPS. The `proposed_since=2020` cutoff was a
+size control with a systematic blind spot - an IETF specification can stay at Proposed
+Standard permanently, so WebSocket (2011), OAuth 2.0 (2012) and JWT (2015) never age
+out of the excluded band however foundational they become.
+
+Adding just those four documents would have been fitting the corpus to its own test
+set. Instead selection now counts how many indexed documents cite each excluded one,
+measuring dependence from the corpus text itself. Each citing document counts once, and
+the boilerplate every RFC cites procedurally is dropped - RFC 7841 alone is cited by 952
+of 1,449. The ranking is led by X.509, NETCONF, RESTCONF, YANG, SIP, Base64, CoAP and
+IPsec, **none of which this evaluation touches**, which is the evidence the rule is not
+rigged; JWT earns its place at 41 citations. The threshold of 10 is the loosest
+considered and is what admits WebSocket at 11.
+
+Corpus: 1,449 → 1,671 documents, 129,109 → 158,205 chunks.
+
+### What fixing the measurement was worth
+
+Same retrieval configuration throughout; only the corpus and the labels changed.
+
+| metric | 1,449 docs, stale labels | **1,671 docs, corrected** | change |
+|---|---|---|---|
+| recall@1 | 0.3365 | **0.4423** | +31% |
+| recall@5 | 0.5192 | **0.7500** | +44% |
+| recall@10 | 0.5769 | **0.7788** | +35% |
+| MRR | 0.4489 | **0.6060** | +35% |
+| nDCG@10 | 0.4641 | **0.6408** | +38% |
+| factual recall@5 | 0.5455 | **1.0000** | +83% |
+| cross-document recall@5 | 0.4583 | **0.4583** | unchanged |
+| p50 latency | 529 ms | 533 ms | unchanged |
+
+**This is not a retrieval improvement.** Nothing in the ranking changed. It is the
+measurement being made against a corpus that contains the answers, and it is the reason
+the earlier 0.52 figure should not be quoted: it was scoring 18 questions against
+documents that were not there.
+
+**And it was not free.** Restricting to the 34 questions untouched by either fix - same
+labels, targets already present - isolates what 222 extra documents cost the retrieval
+that was already working:
+
+| | 1,449 docs | 1,671 docs |
+|---|---|---|
+| recall@10 on the unaffected 34 | 0.8824 | **0.7941** |
+
+Nine points, paid to distractors. The net is strongly positive because thirteen
+impossible questions became answerable, but both halves belong in the claim.
+
+Cross-document recall@5 did not move at all, which is consistent with everything
+measured before it: that gap is structural and is what the agentic layer exists for.
+
+### Two measurement hygiene notes
+
+**A run taken during autovacuum was discarded.** The first post-repair run reported
+recall@5 = 0.7788 and recall@10 = 0.8077 - better than the truth. It executed while
+autovacuum was still working through the re-ingested documents. Three consecutive runs
+on the settled database returned 0.7500 and 0.7788 identically, so the flattering
+numbers were the outlier and the file was deleted rather than kept as data. The same
+contention inflated its p50 from ~533 ms to 2,224 ms.
+
+**Recall is reproducible; MRR and nDCG are not, quite.** Repeated runs give identical
+recall at every k, and MRR and nDCG@10 that vary in the third decimal (0.6060-0.6076)
+from tie-breaking among equal fusion scores. Differences smaller than about 0.005 in
+those two metrics are noise and no conclusion here rests on one.
+
+### Still failing, and the new dominant failure mode
+
+Eleven questions still retrieve nothing relevant in the top 10, and they fail in a way
+the earlier corpus never showed: **one document takes every slot.**
+
+| question | top-10 composition |
+|---|---|
+| `norm-websocket-masking` | 10 of 10 chunks from RFC 9605; RFC 6455 is indexed with 222 chunks and never appears |
+| `fact-jwt-exp-claim` | 7 of 9 from RFC 9930 |
+| `norm-cache-heuristic-freshness` | 5 of 5 from RFC 2330, itself newly added |
+
+Both retrievers concentrate on the same document rather than disagreeing usefully: an
+IDF-selected rare term that happens to be common *inside* one document makes every
+keyword hit come from it. Separately, 25% of top-10 slots were already repeats of the
+same section. Diversification - a per-document cap in the fused result, or MMR over the
+candidate pool - is the next lever, and it has to be measured rather than assumed,
+because a cap trades away the case where an answer genuinely spans several sections of
+one specification.
+
+### A parser bug found by reading the output
+
+A citation came back reading `RFC 9605 — Alice |  (per frame)  (per packet) |`. An
+ASCII-art diagram line was being indexed as an unnumbered section heading, and
+`section_title` carries weight `A` in the tsvector - above body text - so this was not
+merely cosmetic. 198 titles across 33 documents. Unnumbered headings are now rejected
+when they contain box-drawing characters or columnar gaps; numbered sections were
+unaffected and documents parsing to zero sections stayed at 3 of 1,671.
 
 ## Corpus under test
 
@@ -113,7 +223,7 @@ sweep corpus suggested.
 |---|---|
 | Documents | 33 (the pinned sweep corpus, `apps/worker/ingest.py:SWEEP_RFCS`) |
 | Chunks | 7,364 |
-| Full corpus, for comparison | 1,449 documents / 129,109 chunks |
+| Full corpus, current | 1,671 documents / 158,205 chunks |
 | Chunks with a section number | 7,106 (96.5%) |
 | Chunks containing RFC 2119 keywords | 4,180 |
 | Mean chunk length | 620 characters |
@@ -260,10 +370,13 @@ the agentic layer, which can walk the supersession graph instead of guessing.
 ## Known limitations
 
 - One chunk size (800/80). That sweep has not been run yet.
-- The 33-document sweep corpus is small, and the shift on the full 1,449 turned out to
+- The 33-document sweep corpus is small, and the shift on the full corpus turned out to
   be large - see the top of this file. Relative comparisons between configurations are
   still informative; the absolute values are not.
-- No reranking stage exists yet, which the full-corpus result suggests is the largest
-  remaining lever.
+- Result diversification does not exist, and single-document monopolization is now the
+  largest measured failure mode - larger than the reranking gap.
+- The tuning below (keyword weight, semantics, candidate width) was chosen on corpora of
+  33 and 1,449 documents. Neither transferred well the last time the corpus changed, so
+  none of it should be assumed optimal on 1,671 until re-swept.
 - Latency is measured against a local Postgres with a warm cache, not the B1ms.
 - No answer-quality numbers exist yet, and none are claimed.
