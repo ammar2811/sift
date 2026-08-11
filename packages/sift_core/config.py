@@ -71,7 +71,6 @@ class Settings(BaseSettings):
 
     retrieval_candidates: int = 50
     retrieval_top_k: int = 10
-    rerank_enabled: bool = False
 
     queue_name: str = "sift-ingest"
     storage_connection_string: str | None = None

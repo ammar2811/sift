@@ -232,7 +232,12 @@ class Hit:
     score: float
     dense_rank: int | None = None
     keyword_rank: int | None = None
-    rerank_score: float | None = None
+    # No rerank_score field. One was carried here unset for the whole project, next to a
+    # `rerank_enabled` setting nothing read. Reranking was measured to be the wrong fix
+    # for the failure this corpus actually has: recall@10 is flat at 0.5769 from 10
+    # candidates to 200, so a reranker would have been reordering a candidate set that
+    # does not contain the answer. See eval/results/README.md. If it is revisited, the
+    # target is exact-token retrieval, not this.
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
