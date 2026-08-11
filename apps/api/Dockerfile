@@ -19,11 +19,12 @@ WORKDIR /app
 # Dependencies are installed from the manifest alone so this layer is cached across
 # source changes, which is most of the build time.
 COPY pyproject.toml ./
-RUN pip install --no-cache-dir \
-      "fastapi>=0.115" "uvicorn[standard]>=0.32" "httpx>=0.28" \
-      "pydantic>=2.10" "pydantic-settings>=2.7" \
-      "psycopg[binary,pool]>=3.2" "pgvector>=0.3" "redis>=5.2" \
-      "azure-storage-queue>=12.12" "openai>=1.59" "pyyaml>=6.0"
+# Dependencies come out of pyproject.toml rather than being restated here. The list was
+# duplicated for layer caching, which worked until the two copies disagreed; copying only
+# pyproject.toml first keeps the cached layer and leaves one source of truth.
+COPY pyproject.toml ./
+RUN python -c "import tomllib; print('\n'.join(tomllib.load(open('pyproject.toml','rb'))['project']['dependencies']))" > /tmp/requirements.txt \
+    && pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY packages/ ./packages/
 COPY apps/api/ ./apps/api/

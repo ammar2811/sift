@@ -35,5 +35,49 @@ services:
     ports:
       - "10001:10001"
 
+  # The application, so `docker compose up` runs the whole stack rather than only what
+  # it depends on. Both are in the `app` profile and stay out of the default `up`: the
+  # ordinary development loop runs uvicorn and vite on the host for hot reload, and
+  # building two images to get there would be a slower way to do the same thing.
+  #
+  #   docker compose --profile app up --build
+  api:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      SIFT_DATABASE_URL: postgresql://sift:sift@postgres:5432/sift
+      SIFT_REDIS_URL: redis://redis:6379/0
+      # Runs with no cloud account by default. Set these in .env to use Azure, and note
+      # the corpus must have been ingested at the same embedding width.
+      SIFT_EMBEDDING_PROVIDER: ${SIFT_EMBEDDING_PROVIDER:-local}
+      SIFT_EMBEDDING_DIMENSIONS: ${SIFT_EMBEDDING_DIMENSIONS:-768}
+      SIFT_AZURE_OPENAI_ENDPOINT: ${SIFT_AZURE_OPENAI_ENDPOINT:-}
+      SIFT_AZURE_OPENAI_API_KEY: ${SIFT_AZURE_OPENAI_API_KEY:-}
+      SIFT_AZURE_CHAT_DEPLOYMENT: ${SIFT_AZURE_CHAT_DEPLOYMENT:-gpt-4.1-mini}
+      SIFT_STORAGE_CONNECTION_STRING: ${SIFT_STORAGE_CONNECTION_STRING:-}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      # An absolute origin, not an upstream name: nginx resolves upstreams once at
+      # startup and aborts if one does not resolve. See apps/web/nginx.conf.template.
+      SIFT_API_ORIGIN: http://api:8000
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
+
 volumes:
   pgdata:

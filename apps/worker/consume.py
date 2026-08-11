@@ -39,6 +39,10 @@ BATCH_SIZE = 8
 # more work arrives, so lingering only burns the free grant.
 IDLE_EXIT_S = 60
 
+# Gap between polls of an empty queue. A parameter rather than a literal so the tests
+# do not have to sleep through it - six of them did, for five seconds each.
+POLL_INTERVAL_S = 5.0
+
 
 def process_message(
     conn: Any, message: IngestMessage, metas: dict[int, RfcMeta], provider: Any
@@ -58,7 +62,7 @@ def process_message(
     return written
 
 
-def run(idle_exit_s: int = IDLE_EXIT_S) -> int:
+def run(idle_exit_s: int = IDLE_EXIT_S, poll_interval_s: float = POLL_INTERVAL_S) -> int:
     settings = get_settings()
     provider = build_embedding_provider(settings)
     metas = load_corpus_metadata()
@@ -83,7 +87,7 @@ def run(idle_exit_s: int = IDLE_EXIT_S) -> int:
                 elif time.time() - idle_since > idle_exit_s:
                     logger.info("queue idle for %ds; exiting", idle_exit_s)
                     break
-                time.sleep(5)
+                time.sleep(poll_interval_s)
                 continue
 
             idle_since = None

@@ -15,6 +15,9 @@ dependencies = [
     "azure-storage-queue>=12.12",
     "openai>=1.59",
     "pyyaml>=6.0",
+    # Traces and metrics to Application Insights. The connection string is injected by
+    # the infrastructure; without it the API runs untraced rather than failing.
+    "azure-monitor-opentelemetry>=1.6",
 ]
 
 [project.optional-dependencies]
@@ -51,6 +54,13 @@ warn_unused_ignores = true
 [[tool.mypy.overrides]]
 module = "apps.api.main"
 disallow_untyped_decorators = false
+
+# The Azure Monitor distro and the OpenTelemetry instrumentations ship no type
+# information. They are imported inside a try/except that already treats any failure as
+# "run untraced", so an untyped import here costs nothing that is not already handled.
+[[tool.mypy.overrides]]
+module = ["azure.monitor.opentelemetry.*", "opentelemetry.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["apps", "packages", "eval"]

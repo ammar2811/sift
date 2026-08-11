@@ -90,6 +90,11 @@ class Settings(BaseSettings):
     chat_cost_prompt_per_m: float = 0.40
     chat_cost_completion_per_m: float = 1.60
 
+    # /api/ask is the only endpoint that spends money per request, on a public unauthenticated
+    # deployment, so it carries its own ceiling. Search is cheap and is left to the edge.
+    # 0 disables the limiter, which is what the tests and the eval harness want.
+    ask_rate_limit_per_minute: int = 10
+
     log_level: str = Field(default="INFO")
 
 

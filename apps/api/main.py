@@ -19,10 +19,11 @@ from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager
 from typing import Annotated, Any
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
+from apps.api.ratelimit import RateLimiter, client_key
 from apps.api.schemas import (
     AskRequest,
     Citation,
@@ -49,6 +50,12 @@ from packages.sift_core.providers import (
     embed_query_async,
 )
 from packages.sift_core.retrieval import SearchFilters, SearchMode, search
+from packages.sift_core.telemetry import (
+    configure_logging,
+    configure_tracing,
+    new_request_id,
+    request_id_var,
+)
 from packages.sift_core.tools import ToolContext
 
 logger = logging.getLogger("sift.api")
@@ -63,6 +70,7 @@ class AppState:
     embeddings: EmbeddingProvider | None = None
     redis: Any = None
     chat: ChatModel | None = None
+    ask_limiter: RateLimiter | None = None
 
 
 state = AppState()
@@ -71,7 +79,8 @@ state = AppState()
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
-    logging.basicConfig(level=settings.log_level)
+    configure_logging(settings)
+    configure_tracing(app)
 
     # The embedding model loads from disk and can take seconds; doing it here rather
     # than on first request keeps that cost out of a user-visible latency.
@@ -95,13 +104,20 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.warning("chat provider unavailable; /api/ask will return 503 (%s)", exc)
         state.chat = None
 
+    limiter = RateLimiter(settings.ask_rate_limit_per_minute)
+    state.ask_limiter = limiter if limiter.enabled else None
+
     state.embeddings = CachedEmbeddings(provider, redis_client)
     state.redis = redis_client
     db.get_pool()
     logger.info(
-        "ready: embeddings=%s chat=%s",
-        provider.name,
-        state.chat.deployment if state.chat else "unconfigured",
+        "ready",
+        extra={
+            "embeddings": provider.name,
+            "chat": state.chat.deployment if state.chat else None,
+            "redis": redis_client is not None,
+            "ask_rate_limit_per_minute": settings.ask_rate_limit_per_minute,
+        },
     )
     yield
     db.close_pool()
@@ -113,6 +129,38 @@ app = FastAPI(
     version=API_VERSION,
     lifespan=lifespan,
 )
+
+
+@app.middleware("http")
+async def request_context(request: Request, call_next: Any) -> Any:
+    """Tag every request and its log lines with an id, and echo it back.
+
+    An inbound X-Request-ID is honoured so a trace can be followed across the proxy;
+    otherwise one is minted here. Without this a replica serving several requests at
+    once produces log lines that cannot be told apart.
+    """
+    incoming = request.headers.get("x-request-id", "").strip()
+    request_id = incoming[:64] if incoming else new_request_id()
+    token = request_id_var.set(request_id)
+    started = time.perf_counter()
+    try:
+        response = await call_next(request)
+    finally:
+        request_id_var.reset(token)
+
+    response.headers["X-Request-ID"] = request_id
+    logger.info(
+        "request",
+        extra={
+            "method": request.method,
+            "path": request.url.path,
+            "status": response.status_code,
+            "duration_ms": round((time.perf_counter() - started) * 1000, 1),
+            "request_id": request_id,
+        },
+    )
+    return response
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -349,7 +397,9 @@ def _ask_events(
 
 
 @app.post("/api/ask", tags=["ask"])
-async def ask_endpoint(request: AskRequest, settings: SettingsDep) -> StreamingResponse:
+async def ask_endpoint(
+    request: AskRequest, http_request: Request, settings: SettingsDep
+) -> StreamingResponse:
     """Answer one question, streaming the agent's work and its tokens."""
     if state.embeddings is None:
         raise HTTPException(503, "embedding provider not initialised")
@@ -359,6 +409,20 @@ async def ask_endpoint(request: AskRequest, settings: SettingsDep) -> StreamingR
             "chat provider not configured; set SIFT_AZURE_OPENAI_ENDPOINT and "
             "SIFT_AZURE_OPENAI_API_KEY",
         )
+
+    if state.ask_limiter is not None:
+        key = client_key(
+            http_request.client.host if http_request.client else None,
+            http_request.headers.get("x-forwarded-for"),
+        )
+        if (wait := state.ask_limiter.retry_after(key)) is not None:
+            # Rejected before the stream opens, so this can still be a status code rather
+            # than an in-band error event the client has to know how to read.
+            raise HTTPException(
+                429,
+                f"too many questions; retry in {wait:.0f}s",
+                headers={"Retry-After": str(max(1, int(wait) + 1))},
+            )
 
     return StreamingResponse(
         _ask_events(state.chat, state.embeddings, settings, request.query),

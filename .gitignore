@@ -18,3 +18,6 @@ dist/
 
 # eval outputs are committed deliberately (see eval/results/README.md), but scratch is not
 eval/results/*.tmp.json
+
+# Real deployment parameters; infra/params.example.json is the template.
+infra/params.json

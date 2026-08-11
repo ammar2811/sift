@@ -42,8 +42,11 @@ param azureOpenAiKey string = ''
 @description('Azure OpenAI endpoint, e.g. https://sift-openai.openai.azure.com/')
 param azureOpenAiEndpoint string = ''
 
-@description('Run Redis continuously. An always-on 0.25 vCPU replica is roughly $14/month, so it stays off until caching is being measured.')
-param enableRedis bool = false
+@description('Run Redis continuously. An always-on 0.25 vCPU replica is roughly $14/month. On by default now that load/ measures what the cache is worth; turn it off again if the numbers do not justify it.')
+param enableRedis bool = true
+
+@description('Questions per minute per client on /api/ask, the only endpoint that spends money. 0 disables the limiter. Counted per replica - see apps/api/ratelimit.py.')
+param askRateLimitPerMinute int = 10
 
 var tags = {
   project: 'sift'
@@ -260,7 +263,10 @@ resource api 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'SIFT_EMBEDDING_PROVIDER', value: empty(azureOpenAiKey) ? 'local' : 'azure_openai' }
             { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: appInsights.properties.ConnectionString }
             // B1ms allows few connections; a large pool per replica exhausts them.
+            // /api/ask holds one for the life of the stream, so this also bounds
+            // concurrent questions per replica.
             { name: 'SIFT_DB_POOL_MAX', value: '5' }
+            { name: 'SIFT_ASK_RATE_LIMIT_PER_MINUTE', value: string(askRateLimitPerMinute) }
           ]
           probes: [
             {
