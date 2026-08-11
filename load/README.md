@@ -8,14 +8,49 @@ docker run --rm --network host -v "$PWD/load:/scripts" \
   -e BASE_URL=http://localhost:8000 grafana/k6:latest run /scripts/search.js
 ```
 
-**Where these numbers came from, before anything else.** Everything below was measured
-against a local API and a local Postgres, with embeddings served by Azure OpenAI over
-the public internet. It is not the deployed environment: the deployed database is a
-Burstable B1ms with a fraction of this machine's memory and IO, and the deployed API
-scales to zero. **The percentiles here are not the percentiles a user of the deployed
-site would see, and the cold-start profile has not been run at all** - it needs the
-scale-to-zero behaviour that only exists on Container Apps. Treat these as a floor and
-as a regression baseline, not as production numbers.
+**Where these numbers came from, before anything else.** The search and ask percentiles
+below were measured against a local API and a local Postgres, with embeddings served by
+Azure OpenAI over the public internet. They are a floor and a regression baseline, not
+production numbers: the deployed database is a Burstable B1ms with a fraction of this
+machine's memory and IO.
+
+The cold start and the cache measurements *are* from the deployed environment, and they
+are labelled where they appear.
+
+## Cold start: 25 seconds
+
+Measured against the deployed API after it had scaled to zero, which took about six
+minutes of no traffic:
+
+| | |
+|---|---|
+| `/health` from cold | **25.3 s** |
+| first `/api/search` after that | 2.44 s |
+
+This is the single worst number in the project, and it appears in no percentile anywhere
+else in this file: a steady-state load test never sees it, because the test itself keeps
+the replica alive. The first visitor after a quiet period waits 25 seconds for a page
+that answers in under two once it is warm.
+
+Twenty-five of those seconds are container start and application init, not query work -
+the first search afterwards costs 2.44 s, which is roughly the warm cost plus an
+unwarmed index. The trade is deliberate and it is a cost decision rather than a
+technical one: `minReplicas: 0` is what makes the deployment free at rest on a student
+subscription, and `minReplicas: 1` would fix this for the price of running a container
+continuously. The honest options are to pay for a warm replica, to ping the app on a
+schedule, or to say so on the page. Nothing here is free.
+
+## The cache, deployed
+
+Same query three times against the deployed API, after the infrastructure enabled Redis:
+
+| | |
+|---|---|
+| first request | 2.59 s |
+| second | 0.32 s |
+| third | 0.44 s |
+
+Consistent with the local measurement below, at production's higher baseline.
 
 ## Search
 
@@ -98,9 +133,10 @@ gpt-4.1-mini in `config.py`.
 
 ## Known limitations
 
-- Not measured against the deployed environment. Everything above is a local floor.
-- `load/coldstart.js` has never been run. Scale-from-zero is a real part of the deployed
-  experience and is currently unquantified.
+- The search and ask percentiles are local. Only the cold start and the cache numbers
+  are from the deployed environment.
+- The cold start is a single sample. It is large enough that its order of magnitude is
+  the finding, but it is one measurement, not a distribution.
 - Postgres here is local and warm. The B1ms has 2 GiB of memory against a 129,109-chunk
   HNSW index, and behaves differently under concurrency.
 - No sustained soak. The longest run is 70 seconds, which is long enough to find a

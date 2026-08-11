@@ -115,6 +115,14 @@ Latency, local ([detail](load/README.md)):
 | `/api/search` | 1.19 s | 1.74 s | 1.90 s |
 | `/api/ask` | 3.81 s | 11.23 s | - |
 
+And the number none of those percentiles contain: the deployed API runs at
+`minReplicas: 0`, and the first request after it has scaled to zero takes
+**25.3 seconds**. A steady-state load test never sees it, because the test keeps the
+replica alive. It is a cost decision rather than a technical one - a warm replica costs
+money on a student subscription - and it is
+[written down](load/README.md#cold-start-25-seconds) rather than left for a visitor to
+discover.
+
 ## What the numbers cost to believe
 
 Most of the work on this project was not making it better. It was finding out that it
