@@ -143,6 +143,22 @@ def extract_citations(text: str) -> list[str]:
     return list(seen)
 
 
+# Applied to the normalised strings `extract_citations` returns, so it need not repeat
+# that function's tolerance for "§" and for whitespace inside a citation.
+_CITATION_PARTS = re.compile(r"RFC\s*(\d+)(?:\s*Section\s*(\d+(?:\.\d+)*))?", re.IGNORECASE)
+
+
+def parse_citation(text: str) -> tuple[int, str | None] | None:
+    """Split a citation into its RFC number and section, or None if it is neither.
+
+    The one place that knows how to read a citation back. The API resolves citations to
+    URLs and the evaluation scores them against labels; both need this, and two copies
+    would be two chances to disagree about what the agent wrote.
+    """
+    match = _CITATION_PARTS.search(text)
+    return (int(match.group(1)), match.group(2)) if match else None
+
+
 # Phrasings observed in real abstentions on the golden set. The first pass used only
 # five markers and scored 5/8 where hand-reading found 8/8 correct abstentions - it
 # missed "do not specify", "does not contain" and "no mention of". Keyword matching is

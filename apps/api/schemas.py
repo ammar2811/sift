@@ -6,10 +6,11 @@ chosen for the consumer rather than mirroring the database.
 
 from __future__ import annotations
 
-import re
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
+
+from packages.sift_core.agent import parse_citation
 
 
 class SearchRequest(BaseModel):
@@ -115,9 +116,6 @@ def rfc_url(number: int, section: str | None = None) -> str:
     return f"{base}#section-{section}" if section else base
 
 
-_CITATION_PARTS = re.compile(r"RFC\s*(\d+)(?:\s*Section\s*(\d+(?:\.\d+)*))?", re.IGNORECASE)
-
-
 class AnswerCitation(BaseModel):
     """A citation the agent wrote, resolved to somewhere the reader can go."""
 
@@ -134,11 +132,10 @@ def to_answer_citation(text: str) -> AnswerCitation | None:
     of any notion of a URL. Resolving them is this layer's job, and it happens here
     rather than in the browser so both the shape and the link rule have one definition.
     """
-    match = _CITATION_PARTS.search(text)
-    if match is None:
+    parsed = parse_citation(text)
+    if parsed is None:
         return None
-    number = int(match.group(1))
-    section = match.group(2)
+    number, section = parsed
     return AnswerCitation(
         citation=text,
         rfc_number=number,

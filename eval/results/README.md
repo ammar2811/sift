@@ -4,10 +4,11 @@ Every number here came from `python -m eval.harness` or `python -m eval.sweep` a
 the corpus described below, and every run's JSON is committed alongside it with the
 exact configuration, corpus fingerprint and git SHA that produced it.
 
-**These are retrieval metrics only.** No generation model is involved yet, which is
+**These are retrieval metrics only.** No generation model is involved, which is
 deliberate: the golden set labels the sections that *should* be retrieved, so recall,
-MRR and nDCG are measurable without an LLM. Answer accuracy is a separate number and
-is not claimed anywhere yet.
+MRR and nDCG are measurable without an LLM, and they are deterministic in a way answer
+quality is not. Answer accuracy is a separate measurement and lives in
+[ANSWERS.md](ANSWERS.md).
 
 ## The headline result: these numbers do not survive the full corpus
 
@@ -471,4 +472,7 @@ the agentic layer, which can walk the supersession graph instead of guessing.
 - Latency is measured from this machine against the B1ms, so it includes internet
   round-trip and is not a server-side number.
 - Latency is measured against a local Postgres with a warm cache, not the B1ms.
-- No answer-quality numbers exist yet, and none are claimed.
+- Answer quality is measured separately, in [ANSWERS.md](ANSWERS.md). The agentic layer
+  is justified above by the cross-document retrieval gap; the answer numbers show that
+  layer made the class answerable without making it reliable, which is a weaker claim
+  than this file implies.

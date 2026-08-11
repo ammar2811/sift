@@ -48,8 +48,13 @@ questions:
     question: What are the main changes introduced in TLS 1.4?
     type: unanswerable
     reference_answer: >-
-      TLS 1.4 does not exist. The most recent version specified is TLS 1.3 in RFC 8446.
-    notes: False premise; retrieval will surface confident-looking TLS 1.3 content.
+      TLS 1.4 does not exist. The most recent version specified is TLS 1.3, in RFC 9846,
+      which obsoleted RFC 8446.
+    notes: >-
+      False premise; retrieval will surface confident-looking TLS 1.3 content. The
+      reference said RFC 8446 until the answer evaluation caught it: the TLS relabelling
+      updated every `relevant` label to RFC 9846 and could not touch this question,
+      which has none. The system cited 9846 correctly and was graded wrong for it.
 
   - id: unans-vendor-market-share
     question: Which web server software has the largest market share among HTTP/2 deployments?
