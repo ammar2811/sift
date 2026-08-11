@@ -59,14 +59,105 @@ class FakeResponse:
     usage: FakeUsage = field(default_factory=FakeUsage)
 
 
+@dataclass
+class FakeDeltaFunction:
+    name: str | None = None
+    arguments: str | None = None
+
+
+@dataclass
+class FakeDeltaToolCall:
+    index: int
+    id: str | None = None
+    function: FakeDeltaFunction | None = None
+
+
+@dataclass
+class FakeDelta:
+    content: str | None = None
+    tool_calls: list[FakeDeltaToolCall] = field(default_factory=list)
+
+
+@dataclass
+class FakeStreamChoice:
+    delta: FakeDelta
+
+
+@dataclass
+class FakeChunk:
+    choices: list[FakeStreamChoice] = field(default_factory=list)
+    usage: FakeUsage | None = None
+
+
+FRAGMENT_CHARS = 5
+
+
+def _as_chunks(message: FakeMessage) -> list[FakeChunk]:
+    """Break a scripted message into the fragments a real stream would deliver.
+
+    Faithful to the parts of the wire format the loop actually has to cope with: text
+    split mid-word, a tool call whose id and name arrive before its arguments, those
+    arguments split across chunks, and usage arriving last on a chunk carrying no
+    choices at all.
+    """
+    chunks: list[FakeChunk] = []
+    content = message.content or ""
+    for start in range(0, len(content), FRAGMENT_CHARS):
+        piece = content[start : start + FRAGMENT_CHARS]
+        chunks.append(FakeChunk(choices=[FakeStreamChoice(FakeDelta(content=piece))]))
+
+    for index, call in enumerate(message.tool_calls):
+        chunks.append(
+            FakeChunk(
+                choices=[
+                    FakeStreamChoice(
+                        FakeDelta(
+                            tool_calls=[
+                                FakeDeltaToolCall(
+                                    index=index,
+                                    id=call.id,
+                                    function=FakeDeltaFunction(name=call.function.name),
+                                )
+                            ]
+                        )
+                    )
+                ]
+            )
+        )
+        arguments = call.function.arguments
+        half = len(arguments) // 2
+        for part in (arguments[:half], arguments[half:]):
+            chunks.append(
+                FakeChunk(
+                    choices=[
+                        FakeStreamChoice(
+                            FakeDelta(
+                                tool_calls=[
+                                    FakeDeltaToolCall(
+                                        index=index,
+                                        function=FakeDeltaFunction(arguments=part),
+                                    )
+                                ]
+                            )
+                        )
+                    ]
+                )
+            )
+
+    chunks.append(FakeChunk(choices=[], usage=FakeUsage()))
+    return chunks
+
+
 class FakeCompletions:
     def __init__(self, script: list[FakeMessage]) -> None:
         self._script = list(script)
         self.requests: list[dict[str, Any]] = []
 
-    def create(self, **kwargs: Any) -> FakeResponse:
+    def create(self, **kwargs: Any) -> Any:
         self.requests.append(kwargs)
         message = self._script.pop(0) if self._script else FakeMessage(content="fallback")
+        if kwargs.get("stream"):
+            return iter(_as_chunks(message))
         return FakeResponse(choices=[FakeChoice(message=message)])
 
 
@@ -260,6 +351,140 @@ class TestAgentLoop:
         assert result.usage.prompt_tokens == 200
         assert result.usage.completion_tokens == 40
         assert result.usage.elapsed_s >= 0
+
+
+def _collect(events: Any) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Drain a stream into its events and its terminating ``done``."""
+    collected = list(events)
+    assert collected[-1]["type"] == "done"
+    return collected[:-1], collected[-1]
+
+
+def _answer_from(events: list[dict[str, Any]]) -> str:
+    """Replay the stream the way a client must, honouring every reset."""
+    buffer: list[str] = []
+    for event in events:
+        if event["type"] == "delta":
+            buffer.append(event["text"])
+        elif event["type"] == "reset":
+            buffer.clear()
+    return "".join(buffer)
+
+
+class TestAgentStreaming:
+    def test_answer_arrives_as_deltas_that_reassemble(self) -> None:
+        client = FakeClient([FakeMessage(content="See RFC 9110 Section 7.2.")])
+        events, done = _collect(Agent(client, "test").stream("q", StubContext()))
+
+        assert [e["type"] for e in events] == ["delta"] * len(events)
+        assert len(events) > 1, "a single delta would mean nothing was actually streamed"
+        assert _answer_from(events) == "See RFC 9110 Section 7.2."
+        assert done["answer"] == "See RFC 9110 Section 7.2."
+        assert done["citations"] == ["RFC 9110 Section 7.2"]
+
+    def test_tool_arguments_are_reassembled_from_fragments(self) -> None:
+        """Arguments arrive split across chunks and keyed by index, not by id."""
+        client = FakeClient(
+            [
+                FakeMessage(tool_calls=[_tool_call("get_rfc_metadata", rfc_number=9110)]),
+                FakeMessage(content="RFC 9110 Section 7.2 applies."),
+            ]
+        )
+        events, done = _collect(Agent(client, "test").stream("q", StubContext()))
+
+        tool_events = [e for e in events if e["type"] == "tool"]
+        assert [e["tool"] for e in tool_events] == ["get_rfc_metadata"]
+        assert json.loads(tool_events[0]["arguments"]) == {"rfc_number": 9110}
+        assert done["usage"]["tool_calls"] == 1
+
+    def test_tool_events_precede_the_answer(self) -> None:
+        """The point of streaming the loop is seeing the work before the conclusion."""
+        client = FakeClient(
+            [
+                FakeMessage(tool_calls=[_tool_call("get_rfc_metadata", rfc_number=9110)]),
+                FakeMessage(content="RFC 9110 Section 7.2 applies."),
+            ]
+        )
+        events, _ = _collect(Agent(client, "test").stream("q", StubContext()))
+        types = [e["type"] for e in events]
+        assert types.index("tool") < types.index("delta")
+
+    def test_narration_before_a_tool_call_is_withdrawn(self) -> None:
+        """Preamble is streamed before the loop knows it is not the answer."""
+        client = FakeClient(
+            [
+                FakeMessage(
+                    content="Let me look that up.",
+                    tool_calls=[_tool_call("get_rfc_metadata", rfc_number=9110)],
+                ),
+                FakeMessage(content="RFC 9110 Section 7.2 applies."),
+            ]
+        )
+        events, done = _collect(Agent(client, "test").stream("q", StubContext()))
+
+        assert any(e["type"] == "reset" and e["reason"] == "tool_preamble" for e in events)
+        assert _answer_from(events) == "RFC 9110 Section 7.2 applies."
+        assert done["answer"] == "RFC 9110 Section 7.2 applies."
+
+    def test_an_uncited_answer_is_withdrawn_and_restreamed(self) -> None:
+        client = FakeClient(
+            [
+                FakeMessage(content="Yes, definitely."),
+                FakeMessage(content="Yes - RFC 9110 Section 7.2."),
+            ]
+        )
+        events, done = _collect(Agent(client, "test").stream("q", StubContext()))
+
+        assert any(e["type"] == "reset" and e["reason"] == "uncited" for e in events)
+        assert _answer_from(events) == "Yes - RFC 9110 Section 7.2."
+        assert done["citations"] == ["RFC 9110 Section 7.2"]
+
+    def test_an_abstention_is_not_withdrawn(self) -> None:
+        client = FakeClient([FakeMessage(content="RFC 99999 does not exist.")])
+        events, done = _collect(Agent(client, "test").stream("q", StubContext()))
+
+        assert not any(e["type"] == "reset" for e in events)
+        assert done["refused"]
+
+    def test_depth_cap_still_terminates_a_stream(self) -> None:
+        script = [
+            FakeMessage(tool_calls=[_tool_call("get_rfc_metadata", rfc_number=9110)])
+            for _ in range(20)
+        ]
+        client = FakeClient([*script, FakeMessage(content="RFC 9110 Section 7.2 applies.")])
+        _, done = _collect(Agent(client, "test", max_depth=3).stream("q", StubContext()))
+
+        assert done["hit_limit"]
+        assert done["usage"]["rounds"] == 3
+
+    def test_tool_call_budget_still_binds_a_stream(self) -> None:
+        script = [
+            FakeMessage(tool_calls=[_tool_call("get_rfc_metadata", rfc_number=9110)])
+            for _ in range(20)
+        ]
+        client = FakeClient([*script, FakeMessage(content="RFC 9110 Section 7.2.")])
+        _, done = _collect(
+            Agent(client, "test", max_depth=10, max_tool_calls=2).stream("q", StubContext())
+        )
+        assert done["usage"]["tool_calls"] == 2
+        assert done["hit_limit"]
+
+    def test_usage_is_collected_from_the_stream_and_priced(self) -> None:
+        """Streamed responses only report usage when it is asked for."""
+        client = FakeClient([FakeMessage(content="RFC 9110 Section 7.2.")])
+        _, done = _collect(Agent(client, "test").stream("q", StubContext()))
+
+        assert client.completions.requests[0]["stream_options"] == {"include_usage": True}
+        assert done["usage"]["prompt_tokens"] == 100
+        assert done["usage"]["completion_tokens"] == 20
+        assert done["usage"]["cost_usd"] > 0
+
+    def test_cost_follows_the_configured_rates(self) -> None:
+        client = FakeClient([FakeMessage(content="RFC 9110 Section 7.2.")])
+        agent = Agent(client, "test", cost_prompt_per_m=1000.0, cost_completion_per_m=0.0)
+        _, done = _collect(agent.stream("q", StubContext()))
+        # 100 prompt tokens at $1000/M, and output priced at zero.
+        assert done["usage"]["cost_usd"] == pytest.approx(0.1)
 
 
 class TestUsageAccounting:

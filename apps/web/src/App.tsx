@@ -1,14 +1,26 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
+import { AnswerPanel } from "./components/AnswerPanel";
 import { ResultCard } from "./components/ResultCard";
 import {
   ApiError,
+  ask,
   getReadiness,
   search,
+  type AgentUsage,
+  type AnswerCitation,
   type Citation,
   type ReadinessResponse,
   type SearchMode,
+  type ToolStep,
 } from "./lib/api";
+
+type Task = "ask" | "search";
+
+const TASKS: { value: Task; label: string; hint: string }[] = [
+  { value: "ask", label: "Ask", hint: "A cited answer, assembled from the corpus" },
+  { value: "search", label: "Search", hint: "The retrieved passages themselves" },
+];
 
 const MODES: { value: SearchMode; label: string; hint: string }[] = [
   { value: "hybrid", label: "Hybrid", hint: "Vector and keyword results fused by rank" },
@@ -24,6 +36,7 @@ const EXAMPLES = [
 ];
 
 export default function App() {
+  const [task, setTask] = useState<Task>("ask");
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<SearchMode>("hybrid");
   const [currentOnly, setCurrentOnly] = useState(false);
@@ -36,10 +49,17 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [readiness, setReadiness] = useState<ReadinessResponse | null>(null);
 
+  const [answer, setAnswer] = useState<string | null>(null);
+  const [citations, setCitations] = useState<AnswerCitation[]>([]);
+  const [trajectory, setTrajectory] = useState<ToolStep[]>([]);
+  const [usage, setUsage] = useState<AgentUsage | null>(null);
+  const [refused, setRefused] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const inFlight = useRef<AbortController | null>(null);
   const modeGroupId = useId();
+  const taskGroupId = useId();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -107,15 +127,94 @@ export default function App() {
     [mode, currentOnly, normativeOnly],
   );
 
+  const runAsk = useCallback(async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    inFlight.current?.abort();
+    const controller = new AbortController();
+    inFlight.current = controller;
+
+    setLoading(true);
+    setError(null);
+    setAnswer("");
+    setCitations([]);
+    setTrajectory([]);
+    setUsage(null);
+    setRefused(false);
+
+    try {
+      await ask(
+        { query: trimmed },
+        (event) => {
+          switch (event.type) {
+            case "delta":
+              setAnswer((previous) => (previous ?? "") + event.text);
+              break;
+            // Text drawn before the loop knew it was not the answer.
+            case "reset":
+              setAnswer("");
+              break;
+            case "tool":
+              setTrajectory((previous) => [...previous, event]);
+              break;
+            case "done":
+              // Prefer the assembled answer over the accumulated deltas: they should
+              // agree, and if they ever do not, the server's copy is the real one.
+              setAnswer(event.answer);
+              setCitations(event.citations);
+              setTrajectory(event.trajectory);
+              setUsage(event.usage);
+              setRefused(event.refused);
+              break;
+            case "error":
+              setError(event.message);
+              break;
+          }
+        },
+        controller.signal,
+      );
+    } catch (err) {
+      if (controller.signal.aborted) return;
+      setAnswer(null);
+      setError(
+        err instanceof ApiError
+          ? `Could not answer: ${err.message}`
+          : "Could not reach the API. Is the server running?",
+      );
+    } finally {
+      if (!controller.signal.aborted) setLoading(false);
+    }
+  }, []);
+
+  const run = useCallback(
+    (text: string) => (task === "ask" ? runAsk(text) : runSearch(text)),
+    [task, runAsk, runSearch],
+  );
+
   function onSubmit(event: React.FormEvent) {
     event.preventDefault();
-    void runSearch(query);
+    void run(query);
   }
 
   function onExample(text: string) {
     setQuery(text);
-    void runSearch(text);
+    void run(text);
     inputRef.current?.focus();
+  }
+
+  // Switching task discards the other task's output rather than leaving a stale answer
+  // sitting above a fresh set of search results.
+  function onTaskChange(next: Task) {
+    inFlight.current?.abort();
+    setTask(next);
+    setLoading(false);
+    setError(null);
+    setResults(null);
+    setAnswer(null);
+    setCitations([]);
+    setTrajectory([]);
+    setUsage(null);
   }
 
   const ready = readiness?.ready ?? false;
@@ -134,7 +233,7 @@ export default function App() {
               Sift<span>.</span>
             </h1>
             <p className="tagline">
-              Search IETF RFCs with section-precise citations.
+              Ask IETF RFCs a question. Every answer cites an exact section.
             </p>
           </div>
           <p className="corpus-badge">
@@ -151,7 +250,7 @@ export default function App() {
           <form className="search" onSubmit={onSubmit} role="search">
             <div className="search-row">
               <label className="visually-hidden" htmlFor="q">
-                Search the RFC corpus
+                {task === "ask" ? "Ask a question about the RFCs" : "Search the RFC corpus"}
               </label>
               <input
                 id="q"
@@ -165,24 +264,30 @@ export default function App() {
                 spellCheck={false}
               />
               <button className="btn" type="submit" disabled={loading || !query.trim()}>
-                {loading ? "Searching…" : "Search"}
+                {loading
+                  ? task === "ask"
+                    ? "Answering…"
+                    : "Searching…"
+                  : task === "ask"
+                    ? "Ask"
+                    : "Search"}
               </button>
             </div>
 
             <div className="controls">
-              <div className="control-group" role="group" aria-labelledby={modeGroupId}>
-                <span className="group-label" id={modeGroupId}>
-                  Retrieval
+              <div className="control-group" role="group" aria-labelledby={taskGroupId}>
+                <span className="group-label" id={taskGroupId}>
+                  Mode
                 </span>
                 <div className="segmented">
-                  {MODES.map((option) => (
+                  {TASKS.map((option) => (
                     <label key={option.value} title={option.hint}>
                       <input
                         type="radio"
-                        name="mode"
+                        name="task"
                         value={option.value}
-                        checked={mode === option.value}
-                        onChange={() => setMode(option.value)}
+                        checked={task === option.value}
+                        onChange={() => onTaskChange(option.value)}
                       />
                       <span>{option.label}</span>
                     </label>
@@ -190,43 +295,79 @@ export default function App() {
                 </div>
               </div>
 
-              <label className="checkbox">
-                <input
-                  type="checkbox"
-                  checked={currentOnly}
-                  onChange={(e) => setCurrentOnly(e.target.checked)}
-                />
-                Current specs only
-              </label>
+              {/* Retrieval controls tune what search returns. In ask mode the agent
+                  chooses its own retrieval per tool call, so showing them would imply
+                  a control the user does not have. */}
+              {task === "search" && (
+                <>
+                  <div className="control-group" role="group" aria-labelledby={modeGroupId}>
+                    <span className="group-label" id={modeGroupId}>
+                      Retrieval
+                    </span>
+                    <div className="segmented">
+                      {MODES.map((option) => (
+                        <label key={option.value} title={option.hint}>
+                          <input
+                            type="radio"
+                            name="mode"
+                            value={option.value}
+                            checked={mode === option.value}
+                            onChange={() => setMode(option.value)}
+                          />
+                          <span>{option.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
 
-              <label className="checkbox">
-                <input
-                  type="checkbox"
-                  checked={normativeOnly}
-                  onChange={(e) => setNormativeOnly(e.target.checked)}
-                />
-                Requirements only
-              </label>
+                  <label className="checkbox">
+                    <input
+                      type="checkbox"
+                      checked={currentOnly}
+                      onChange={(e) => setCurrentOnly(e.target.checked)}
+                    />
+                    Current specs only
+                  </label>
 
-              <label className="checkbox">
-                <input
-                  type="checkbox"
-                  checked={showInspector}
-                  onChange={(e) => setShowInspector(e.target.checked)}
-                />
-                Show retrieval detail
-              </label>
+                  <label className="checkbox">
+                    <input
+                      type="checkbox"
+                      checked={normativeOnly}
+                      onChange={(e) => setNormativeOnly(e.target.checked)}
+                    />
+                    Requirements only
+                  </label>
+
+                  <label className="checkbox">
+                    <input
+                      type="checkbox"
+                      checked={showInspector}
+                      onChange={(e) => setShowInspector(e.target.checked)}
+                    />
+                    Show retrieval detail
+                  </label>
+                </>
+              )}
             </div>
           </form>
 
           {/* Announced to screen readers whenever the result count changes, so the
               outcome of a search is not silent for non-visual users. */}
+          {/* The single announcement point. In ask mode this is what tells a screen
+              reader the answer has settled, since streaming the tokens themselves into
+              a live region would announce the answer a word at a time. */}
           <p className="status-line" role="status" aria-live="polite">
             {loading
-              ? "Searching…"
-              : results
-                ? `${results.length} result${results.length === 1 ? "" : "s"} in ${tookMs?.toFixed(0)} ms`
-                : ""}
+              ? task === "ask"
+                ? "Working on an answer…"
+                : "Searching…"
+              : task === "ask"
+                ? usage
+                  ? `Answer complete, ${citations.length} source${citations.length === 1 ? "" : "s"} cited, in ${usage.elapsed_s.toFixed(1)} seconds`
+                  : ""
+                : results
+                  ? `${results.length} result${results.length === 1 ? "" : "s"} in ${tookMs?.toFixed(0)} ms`
+                  : ""}
           </p>
 
           <div id="results" ref={resultsRef} tabIndex={-1}>
@@ -236,7 +377,18 @@ export default function App() {
               </p>
             )}
 
-            {loading && !results && (
+            {task === "ask" && answer !== null && (
+              <AnswerPanel
+                answer={answer}
+                citations={citations}
+                trajectory={trajectory}
+                usage={usage}
+                refused={refused}
+                streaming={loading}
+              />
+            )}
+
+            {task === "search" && loading && !results && (
               <div className="results" aria-hidden="true">
                 {[0, 1, 2].map((i) => (
                   <div key={i} className="skeleton" />
@@ -244,7 +396,7 @@ export default function App() {
               </div>
             )}
 
-            {results && results.length > 0 && (
+            {task === "search" && results && results.length > 0 && (
               <ul className="results">
                 {results.map((hit) => (
                   <ResultCard key={hit.chunk_id} hit={hit} showInspector={showInspector} />
@@ -252,7 +404,7 @@ export default function App() {
               </ul>
             )}
 
-            {results && results.length === 0 && !loading && (
+            {task === "search" && results && results.length === 0 && !loading && (
               <div className="empty">
                 <p style={{ margin: 0 }}>
                   Nothing matched. Try fewer filters, or the keyword mode for an exact
@@ -261,10 +413,12 @@ export default function App() {
               </div>
             )}
 
-            {!results && !error && !loading && (
+            {!results && answer === null && !error && !loading && (
               <div className="empty">
                 <p style={{ marginTop: 0 }}>
-                  Search across IETF standards. Every result cites an exact section.
+                  {task === "ask"
+                    ? "Ask a question about any IETF standard. Answers are assembled only from the corpus, and cite the sections they came from."
+                    : "Search across IETF standards. Every result cites an exact section."}
                 </p>
                 <ul className="examples">
                   {EXAMPLES.map((text) => (

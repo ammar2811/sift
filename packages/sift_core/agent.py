@@ -17,6 +17,19 @@ a suggestion and a loop bound is not:
 - ``max_tool_calls`` caps total calls, so a model cannot loop on one tool.
 - Answers without a citation are rejected and the model is asked once to redo it.
 - Token usage is accumulated and returned, so cost per request is measurable.
+
+``run`` and ``stream`` are the same loop with different final-answer handling. ``run``
+is what the evaluation harness uses, where nothing observes a partial answer and a
+single blocking call is simpler. ``stream`` streams every round, so the tokens a user
+reads are the tokens the model produced rather than a finished answer chopped up
+afterwards. Both share the guardrails below, because a bound enforced on one path and
+not the other is not a bound.
+
+Streaming has one consequence worth stating plainly: tokens are emitted before the
+loop knows whether they form the final answer. A model that narrates before calling a
+tool, and an answer that turns out to carry no citation, both produce text that must be
+withdrawn. Rather than delay every answer to rule those out, the stream emits a
+``reset`` event and the client discards what it has drawn so far.
 """
 
 from __future__ import annotations
@@ -25,7 +38,7 @@ import json
 import logging
 import re
 import time
-from collections.abc import Iterator
+from collections.abc import Generator, Iterator
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -63,6 +76,10 @@ REDO_PROMPT = (
     "corpus does not support an answer."
 )
 
+ANSWER_NOW_PROMPT = (
+    "Answer now using what the tools returned. If that is not enough, say so plainly."
+)
+
 
 @dataclass(slots=True)
 class AgentUsage:
@@ -91,6 +108,30 @@ class AgentResult:
     trajectory: list[dict[str, Any]] = field(default_factory=list)
     usage: AgentUsage = field(default_factory=AgentUsage)
     refused: bool = False
+    hit_limit: bool = False
+
+
+@dataclass(slots=True)
+class _PendingCall:
+    """One tool call, in the one shape both response forms reduce to.
+
+    A non-streaming response hands over a finished call; a stream delivers it in
+    fragments. Normalising here keeps the dispatch and budget logic from having to know
+    which path produced it.
+    """
+
+    id: str
+    name: str
+    arguments: str
+
+
+@dataclass(slots=True)
+class _LoopState:
+    """Everything one question accumulates as the loop runs."""
+
+    messages: list[dict[str, Any]]
+    usage: AgentUsage = field(default_factory=AgentUsage)
+    trajectory: list[dict[str, Any]] = field(default_factory=list)
     hit_limit: bool = False
 
 
@@ -156,14 +197,29 @@ class Agent:
         max_depth: int = 6,
         max_tool_calls: int = 12,
         max_completion_tokens: int = 1200,
+        cost_prompt_per_m: float = 0.40,
+        cost_completion_per_m: float = 1.60,
     ) -> None:
         self._client = client
         self._model = model
         self._max_depth = max_depth
         self._max_tool_calls = max_tool_calls
         self._max_completion_tokens = max_completion_tokens
+        self._cost_prompt_per_m = cost_prompt_per_m
+        self._cost_completion_per_m = cost_completion_per_m
 
-    def _complete(self, messages: list[dict[str, Any]], *, with_tools: bool) -> Any:
+    # ---- shared machinery -------------------------------------------------
+
+    @staticmethod
+    def _initial_messages(question: str) -> list[dict[str, Any]]:
+        return [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": question},
+        ]
+
+    def _complete(
+        self, messages: list[dict[str, Any]], *, with_tools: bool, stream: bool = False
+    ) -> Any:
         kwargs: dict[str, Any] = {
             "model": self._model,
             "messages": messages,
@@ -172,149 +228,249 @@ class Agent:
         if with_tools:
             kwargs["tools"] = openai_tool_schemas()
             kwargs["tool_choice"] = "auto"
+        if stream:
+            kwargs["stream"] = True
+            # Without this a streamed response carries no token counts at all, and the
+            # cost figure for every streamed request would silently be zero.
+            kwargs["stream_options"] = {"include_usage": True}
         return self._client.chat.completions.create(**kwargs)
+
+    @staticmethod
+    def _record_usage(usage: AgentUsage, reported: Any) -> None:
+        if not reported:
+            return
+        usage.prompt_tokens += getattr(reported, "prompt_tokens", 0) or 0
+        usage.completion_tokens += getattr(reported, "completion_tokens", 0) or 0
+
+    @staticmethod
+    def _assistant_turn(content: str | None, calls: list[_PendingCall]) -> dict[str, Any]:
+        """The assistant turn must carry tool_calls or the tool results orphan."""
+        return {
+            "role": "assistant",
+            "content": content,
+            "tool_calls": [
+                {
+                    "id": c.id,
+                    "type": "function",
+                    "function": {"name": c.name, "arguments": c.arguments},
+                }
+                for c in calls
+            ],
+        }
+
+    def _dispatch_calls(
+        self, state: _LoopState, ctx: ToolContext, calls: list[_PendingCall]
+    ) -> Iterator[dict[str, Any]]:
+        """Run one round's tool calls under the budget, yielding trajectory steps."""
+        for call in calls:
+            if state.usage.tool_calls >= self._max_tool_calls:
+                state.hit_limit = True
+                state.messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": call.id,
+                        "content": json.dumps({"error": "tool call budget exhausted; answer now"}),
+                    }
+                )
+                continue
+
+            state.usage.tool_calls += 1
+            result = dispatch(ctx, call.name, call.arguments)
+            step = {
+                "tool": call.name,
+                "arguments": call.arguments,
+                "result_preview": result[:300],
+            }
+            state.trajectory.append(step)
+            state.messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
+            yield step
+
+    def _usage_payload(self, usage: AgentUsage) -> dict[str, Any]:
+        return {
+            "prompt_tokens": usage.prompt_tokens,
+            "completion_tokens": usage.completion_tokens,
+            "total_tokens": usage.total_tokens,
+            "tool_calls": usage.tool_calls,
+            "rounds": usage.rounds,
+            "cost_usd": round(
+                usage.cost_usd(self._cost_prompt_per_m, self._cost_completion_per_m), 6
+            ),
+            "elapsed_s": round(usage.elapsed_s, 3),
+        }
+
+    # ---- blocking path ----------------------------------------------------
 
     def run(self, question: str, ctx: ToolContext) -> AgentResult:
         started = time.perf_counter()
-        messages: list[dict[str, Any]] = [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": question},
-        ]
-        usage = AgentUsage()
-        trajectory: list[dict[str, Any]] = []
-        hit_limit = False
+        state = _LoopState(messages=self._initial_messages(question))
 
         for _ in range(self._max_depth):
-            usage.rounds += 1
-            response = self._complete(messages, with_tools=True)
-            if response.usage:
-                usage.prompt_tokens += response.usage.prompt_tokens
-                usage.completion_tokens += response.usage.completion_tokens
+            state.usage.rounds += 1
+            response = self._complete(state.messages, with_tools=True)
+            self._record_usage(state.usage, getattr(response, "usage", None))
 
             message = response.choices[0].message
-            calls = list(message.tool_calls or [])
+            calls = [
+                _PendingCall(c.id, c.function.name, c.function.arguments)
+                for c in (message.tool_calls or [])
+            ]
             if not calls:
-                messages.append({"role": "assistant", "content": message.content or ""})
+                state.messages.append({"role": "assistant", "content": message.content or ""})
                 break
 
-            # The assistant turn must be appended verbatim, tool_calls included, or the
-            # tool results that follow have nothing to attach to.
-            messages.append(
-                {
-                    "role": "assistant",
-                    "content": message.content,
-                    "tool_calls": [
-                        {
-                            "id": c.id,
-                            "type": "function",
-                            "function": {
-                                "name": c.function.name,
-                                "arguments": c.function.arguments,
-                            },
-                        }
-                        for c in calls
-                    ],
-                }
-            )
+            state.messages.append(self._assistant_turn(message.content, calls))
+            for _step in self._dispatch_calls(state, ctx, calls):
+                pass
 
-            for call in calls:
-                if usage.tool_calls >= self._max_tool_calls:
-                    hit_limit = True
-                    messages.append(
-                        {
-                            "role": "tool",
-                            "tool_call_id": call.id,
-                            "content": json.dumps(
-                                {"error": "tool call budget exhausted; answer now"}
-                            ),
-                        }
-                    )
-                    continue
-
-                usage.tool_calls += 1
-                result = dispatch(ctx, call.function.name, call.function.arguments)
-                trajectory.append(
-                    {
-                        "tool": call.function.name,
-                        "arguments": call.function.arguments,
-                        "result_preview": result[:300],
-                    }
-                )
-                messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
-
-            if hit_limit:
+            if state.hit_limit:
                 break
         else:
-            hit_limit = True
+            state.hit_limit = True
 
-        answer = self._final_answer(messages, usage, hit_limit)
+        answer = self._final_answer(state, nudge=state.hit_limit)
         citations = extract_citations(answer)
         refused = looks_like_refusal(answer)
 
         # An answer with no citation and no refusal is exactly the failure the whole
         # design exists to prevent, so it gets one chance to be corrected.
         if not citations and not refused:
-            messages.append({"role": "user", "content": REDO_PROMPT})
-            answer = self._final_answer(messages, usage, hit_limit)
+            state.messages.append({"role": "user", "content": REDO_PROMPT})
+            answer = self._final_answer(state, nudge=False)
             citations = extract_citations(answer)
             refused = looks_like_refusal(answer)
 
-        usage.elapsed_s = time.perf_counter() - started
+        state.usage.elapsed_s = time.perf_counter() - started
         return AgentResult(
             answer=answer,
             citations=citations,
-            trajectory=trajectory,
-            usage=usage,
+            trajectory=state.trajectory,
+            usage=state.usage,
             refused=refused,
-            hit_limit=hit_limit,
+            hit_limit=state.hit_limit,
         )
 
-    def _final_answer(
-        self, messages: list[dict[str, Any]], usage: AgentUsage, hit_limit: bool
-    ) -> str:
-        last = messages[-1]
+    def _final_answer(self, state: _LoopState, *, nudge: bool) -> str:
+        last = state.messages[-1]
         if last.get("role") == "assistant" and last.get("content"):
             return str(last["content"])
 
-        if hit_limit:
-            messages = [
-                *messages,
-                {
-                    "role": "user",
-                    "content": (
-                        "Answer now using what the tools returned. If that is not "
-                        "enough, say so plainly."
-                    ),
-                },
-            ]
-        response = self._complete(messages, with_tools=False)
-        if response.usage:
-            usage.prompt_tokens += response.usage.prompt_tokens
-            usage.completion_tokens += response.usage.completion_tokens
+        if nudge:
+            state.messages.append({"role": "user", "content": ANSWER_NOW_PROMPT})
+        response = self._complete(state.messages, with_tools=False)
+        self._record_usage(state.usage, getattr(response, "usage", None))
         content = response.choices[0].message.content or ""
-        messages.append({"role": "assistant", "content": content})
+        state.messages.append({"role": "assistant", "content": content})
         return str(content)
 
-    def stream(self, question: str, ctx: ToolContext) -> Iterator[dict[str, Any]]:
-        """Run the loop, then stream the final answer.
+    # ---- streaming path ---------------------------------------------------
 
-        Tool rounds happen before any token is emitted, so the client sees the
-        trajectory first and the answer streams once the evidence is gathered.
+    def _consume_stream(
+        self, stream: Any, usage: AgentUsage
+    ) -> Generator[dict[str, Any], None, tuple[str, list[_PendingCall]]]:
+        """Emit text deltas from a streaming completion; return what it amounted to.
+
+        Tool call arguments arrive as a JSON string split across chunks and keyed by
+        position, and only the first fragment of a call carries its id, so fragments
+        are accumulated by index rather than by id.
         """
-        result = self.run(question, ctx)
-        yield {"type": "trajectory", "steps": result.trajectory}
-        for chunk in result.answer.split(" "):
-            yield {"type": "delta", "text": chunk + " "}
+        parts: list[str] = []
+        calls: dict[int, _PendingCall] = {}
+
+        for chunk in stream:
+            self._record_usage(usage, getattr(chunk, "usage", None))
+            choices = getattr(chunk, "choices", None) or []
+            if not choices:
+                continue
+            delta = getattr(choices[0], "delta", None)
+            if delta is None:
+                continue
+
+            if text := (getattr(delta, "content", None) or ""):
+                parts.append(text)
+                yield {"type": "delta", "text": text}
+
+            for fragment in getattr(delta, "tool_calls", None) or []:
+                slot = calls.setdefault(fragment.index, _PendingCall("", "", ""))
+                if fragment.id:
+                    slot.id = fragment.id
+                function = getattr(fragment, "function", None)
+                if function is None:
+                    continue
+                if function.name:
+                    slot.name = function.name
+                if function.arguments:
+                    slot.arguments += function.arguments
+
+        return "".join(parts), [calls[index] for index in sorted(calls)]
+
+    def _stream_answer(
+        self, state: _LoopState, *, nudge: bool
+    ) -> Generator[dict[str, Any], None, str]:
+        if nudge:
+            state.messages.append({"role": "user", "content": ANSWER_NOW_PROMPT})
+        stream = self._complete(state.messages, with_tools=False, stream=True)
+        content, _ = yield from self._consume_stream(stream, state.usage)
+        state.messages.append({"role": "assistant", "content": content})
+        return content
+
+    def _stream_rounds(
+        self, state: _LoopState, ctx: ToolContext
+    ) -> Generator[dict[str, Any], None, str]:
+        for _ in range(self._max_depth):
+            state.usage.rounds += 1
+            stream = self._complete(state.messages, with_tools=True, stream=True)
+            content, calls = yield from self._consume_stream(stream, state.usage)
+
+            if not calls:
+                if content:
+                    state.messages.append({"role": "assistant", "content": content})
+                    return content
+                break
+
+            # A model that narrates before calling a tool has already had those tokens
+            # streamed as though they were the answer. They are not, so withdraw them.
+            if content.strip():
+                yield {"type": "reset", "reason": "tool_preamble"}
+
+            state.messages.append(self._assistant_turn(content or None, calls))
+            for step in self._dispatch_calls(state, ctx, calls):
+                yield {"type": "tool", **step}
+
+            if state.hit_limit:
+                break
+        else:
+            state.hit_limit = True
+
+        return (yield from self._stream_answer(state, nudge=state.hit_limit))
+
+    def stream(self, question: str, ctx: ToolContext) -> Iterator[dict[str, Any]]:
+        """Run the loop, emitting events as they happen.
+
+        Event types: ``tool`` once per completed tool call, ``delta`` per text
+        fragment, ``reset`` when previously emitted text must be discarded, and
+        ``done`` last with the assembled answer, citations and usage.
+        """
+        started = time.perf_counter()
+        state = _LoopState(messages=self._initial_messages(question))
+
+        answer = yield from self._stream_rounds(state, ctx)
+        citations = extract_citations(answer)
+        refused = looks_like_refusal(answer)
+
+        if not citations and not refused:
+            state.messages.append({"role": "user", "content": REDO_PROMPT})
+            yield {"type": "reset", "reason": "uncited"}
+            answer = yield from self._stream_answer(state, nudge=False)
+            citations = extract_citations(answer)
+            refused = looks_like_refusal(answer)
+
+        state.usage.elapsed_s = time.perf_counter() - started
         yield {
             "type": "done",
-            "citations": result.citations,
-            "refused": result.refused,
-            "usage": {
-                "prompt_tokens": result.usage.prompt_tokens,
-                "completion_tokens": result.usage.completion_tokens,
-                "tool_calls": result.usage.tool_calls,
-                "rounds": result.usage.rounds,
-                "cost_usd": round(result.usage.cost_usd(), 6),
-                "elapsed_s": round(result.usage.elapsed_s, 3),
-            },
+            "answer": answer,
+            "citations": citations,
+            "refused": refused,
+            "hit_limit": state.hit_limit,
+            "trajectory": state.trajectory,
+            "usage": self._usage_payload(state.usage),
         }

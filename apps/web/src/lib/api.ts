@@ -41,32 +41,6 @@ export interface SearchRequest {
   min_year?: number | null;
 }
 
-export interface DocumentSummary {
-  number: number;
-  title: string;
-  year: number;
-  status: string;
-  abstract: string | null;
-  authors: string[];
-  area: string | null;
-  wg: string | null;
-  is_current: boolean;
-  is_embedded: boolean;
-  obsoletes: number[];
-  obsoleted_by: number[];
-  updates: number[];
-  updated_by: number[];
-  source_url: string;
-}
-
-export interface SupersessionChain {
-  requested: number;
-  current: number;
-  is_current: boolean;
-  chain: DocumentSummary[];
-  note: string | null;
-}
-
 export interface DependencyStatus {
   name: string;
   ok: boolean;
@@ -124,9 +98,103 @@ export function getReadiness(signal?: AbortSignal): Promise<ReadinessResponse> {
   return request<ReadinessResponse>("/ready", { signal });
 }
 
-export function getCurrentSpec(
-  rfcNumber: number,
+export interface AnswerCitation {
+  citation: string;
+  rfc_number: number;
+  section_number: string | null;
+  source_url: string;
+}
+
+export interface ToolStep {
+  tool: string;
+  arguments: string;
+  result_preview: string;
+}
+
+export interface AgentUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  tool_calls: number;
+  rounds: number;
+  cost_usd: number;
+  elapsed_s: number;
+}
+
+/**
+ * One frame of an answer.
+ *
+ * `reset` is the one that shapes the consumer: tokens are streamed before the server
+ * knows whether they are the final answer, so anything already drawn must be dropped
+ * when it arrives. A client that ignores it renders a discarded draft followed by the
+ * real answer.
+ */
+export type AskEvent =
+  | { type: "tool"; tool: string; arguments: string; result_preview: string }
+  | { type: "delta"; text: string }
+  | { type: "reset"; reason: string }
+  | {
+      type: "done";
+      answer: string;
+      citations: AnswerCitation[];
+      refused: boolean;
+      hit_limit: boolean;
+      trajectory: ToolStep[];
+      usage: AgentUsage;
+    }
+  | { type: "error"; message: string };
+
+/**
+ * Stream an answer, invoking `onEvent` per frame.
+ *
+ * Uses fetch over EventSource because the question goes in a POST body and
+ * EventSource can only issue GETs.
+ */
+export async function ask(
+  body: { query: string },
+  onEvent: (event: AskEvent) => void,
   signal?: AbortSignal,
-): Promise<SupersessionChain> {
-  return request<SupersessionChain>(`/api/documents/${rfcNumber}/current`, { signal });
+): Promise<void> {
+  const response = await fetch("/api/ask", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    signal,
+  });
+
+  if (!response.ok) {
+    let detail = response.statusText;
+    try {
+      const parsed = (await response.json()) as { detail?: unknown };
+      if (typeof parsed.detail === "string") detail = parsed.detail;
+    } catch {
+      /* keep statusText */
+    }
+    throw new ApiError(detail, response.status);
+  }
+  if (!response.body) throw new ApiError("this browser cannot read a streamed response", 0);
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    // A frame can be split across reads, so decode with `stream` and only consume
+    // whole frames - the trailing partial one stays buffered for the next read.
+    buffer += decoder.decode(value, { stream: true });
+
+    let boundary = buffer.indexOf("\n\n");
+    while (boundary !== -1) {
+      const frame = buffer.slice(0, boundary);
+      buffer = buffer.slice(boundary + 2);
+      for (const line of frame.split("\n")) {
+        if (line.startsWith("data: ")) {
+          onEvent(JSON.parse(line.slice(6)) as AskEvent);
+        }
+      }
+      boundary = buffer.indexOf("\n\n");
+    }
+  }
 }

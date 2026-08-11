@@ -54,7 +54,7 @@ export function ResultCard({ hit, showInspector }: Props) {
 
         <p className="result-title">
           {hit.title}
-          {hit.section_title ? ` — ${hit.section_title}` : ""}
+          {hit.section_title ? ` - ${hit.section_title}` : ""}
         </p>
 
         <p className={preformatted ? "result-body preformatted" : "result-body"}>

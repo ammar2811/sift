@@ -20,8 +20,15 @@ class EmbeddingProviderName(StrEnum):
 
 
 class ChatProviderName(StrEnum):
+    """Only one member today.
+
+    The enum stays because provider choice belongs in configuration rather than in a
+    code path, the same as embeddings. An earlier `anthropic` member was removed: it
+    named a provider with no client implementation and no dependency, so any
+    deployment that selected it failed at startup rather than at review.
+    """
+
     AZURE_OPENAI = "azure_openai"
-    ANTHROPIC = "anthropic"
 
 
 class Settings(BaseSettings):
@@ -51,9 +58,6 @@ class Settings(BaseSettings):
     # latency that single-shot answering does not.
     azure_reasoning_deployment: str = "gpt-5-mini"
 
-    anthropic_api_key: str | None = None
-    anthropic_model: str = "claude-sonnet-5"
-
     local_embedding_model: str = "BAAI/bge-small-en-v1.5"
     # 0 lets onnxruntime use every core. Local embedding saturates the CPU, so lower
     # this when the machine has to do anything else at the same time.
@@ -73,8 +77,18 @@ class Settings(BaseSettings):
     storage_connection_string: str | None = None
 
     request_timeout_s: float = 60.0
-    max_tool_depth: int = 6
-    max_tokens_per_request: int = 4096
+
+    # Agent loop bounds. These are the guardrails from agent.py hoisted into settings so
+    # a runaway model is a config change rather than a redeploy of new code.
+    agent_max_depth: int = 6
+    agent_max_tool_calls: int = 12
+    agent_max_completion_tokens: int = 1200
+
+    # gpt-4.1-mini's published rates, per million tokens. Cost is reported per request,
+    # so these belong beside the deployment they describe: change the deployment and
+    # these must change with it or every cost figure quietly becomes wrong.
+    chat_cost_prompt_per_m: float = 0.40
+    chat_cost_completion_per_m: float = 1.60
 
     log_level: str = Field(default="INFO")
 

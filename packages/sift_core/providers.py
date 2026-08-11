@@ -15,9 +15,15 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Sequence
+from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
-from packages.sift_core.config import EmbeddingProviderName, Settings, get_settings
+from packages.sift_core.config import (
+    ChatProviderName,
+    EmbeddingProviderName,
+    Settings,
+    get_settings,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -190,7 +196,7 @@ class CachedEmbeddings:
             try:
                 import json
 
-                self._cache.setex(key, self._ttl, json.dumps(vector))
+                self._cache.set(key, json.dumps(vector), ex=self._ttl)
             except Exception:
                 logger.warning("embedding cache write failed", exc_info=True)
         return vector
@@ -201,6 +207,49 @@ def build_embedding_provider(settings: Settings | None = None) -> EmbeddingProvi
     if s.embedding_provider is EmbeddingProviderName.LOCAL:
         return LocalEmbeddings(s.local_embedding_model, threads=s.local_embedding_threads or None)
     return AzureOpenAIEmbeddings(s)
+
+
+@dataclass(frozen=True, slots=True)
+class ChatModel:
+    """An OpenAI-compatible client paired with the deployment to call on it.
+
+    The two travel together because on Azure they are not independent: the client
+    carries the endpoint and the deployment names the model within it, and using one
+    without the other produces a 404 that reads like an auth failure.
+    """
+
+    client: Any
+    deployment: str
+
+
+def build_chat_model(settings: Settings | None = None) -> ChatModel:
+    """Construct the chat client the agent runs against.
+
+    Unlike embeddings there is no local fallback. A local chat model good enough to
+    follow a four-tool protocol does not fit the machine this is developed on, and a
+    fallback that answers badly is worse than one that refuses to start - the whole
+    point of the loop is that answers are grounded.
+    """
+    s = settings or get_settings()
+    if s.chat_provider is not ChatProviderName.AZURE_OPENAI:
+        raise RuntimeError(f"unsupported chat provider {s.chat_provider!r}")
+    if not s.azure_openai_endpoint or not s.azure_openai_api_key:
+        raise RuntimeError(
+            "the agent needs SIFT_AZURE_OPENAI_ENDPOINT and SIFT_AZURE_OPENAI_API_KEY"
+        )
+
+    from openai import AzureOpenAI
+
+    return ChatModel(
+        client=AzureOpenAI(
+            azure_endpoint=s.azure_openai_endpoint,
+            api_key=s.azure_openai_api_key,
+            api_version=s.azure_openai_api_version,
+            timeout=s.request_timeout_s,
+            max_retries=3,
+        ),
+        deployment=s.azure_chat_deployment,
+    )
 
 
 async def embed_documents_async(

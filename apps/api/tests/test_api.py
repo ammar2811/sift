@@ -7,14 +7,26 @@ exercised the way a client would hit them.
 
 from __future__ import annotations
 
+import json
 import os
 from collections.abc import Iterator
+from contextlib import contextmanager
+from typing import Any
 
 import psycopg
 import pytest
 from fastapi.testclient import TestClient
 
 from packages.sift_core import db
+
+# The agent's scripted stand-in is defined with the agent's own tests; reusing it keeps
+# one fake model in the repo rather than two that can drift apart.
+from packages.sift_core.tests.test_agent import (
+    FakeClient,
+    FakeFunction,
+    FakeMessage,
+    FakeToolCall,
+)
 
 
 def _corpus_state() -> tuple[bool, int | None]:
@@ -217,3 +229,97 @@ def test_current_document_reports_itself(client: TestClient) -> None:
     assert body["current"] == 9110
     assert body["is_current"] is True
     assert len(body["chain"]) == 1
+
+
+def _sse_events(payload: str) -> list[dict[str, Any]]:
+    """Parse an SSE body into the JSON objects it carried."""
+    return [
+        json.loads(line[len("data: ") :])
+        for line in payload.splitlines()
+        if line.startswith("data: ")
+    ]
+
+
+@contextmanager
+def _fake_chat(script: list[FakeMessage]) -> Iterator[None]:
+    """Point /api/ask at a scripted model, leaving the rest of the app real."""
+    from apps.api import main
+    from packages.sift_core.providers import ChatModel
+
+    previous = main.state.chat
+    main.state.chat = ChatModel(client=FakeClient(script), deployment="fake")
+    try:
+        yield
+    finally:
+        main.state.chat = previous
+
+
+def test_ask_is_unavailable_without_a_chat_provider(client: TestClient) -> None:
+    """Retrieval must keep working when the agent is unconfigured, and say so clearly."""
+    from apps.api import main
+
+    previous = main.state.chat
+    main.state.chat = None
+    try:
+        response = client.post("/api/ask", json={"query": "anything"})
+        assert response.status_code == 503
+        assert "SIFT_AZURE_OPENAI" in response.json()["detail"]
+        assert client.post("/api/search", json={"query": "Host header"}).status_code == 200
+    finally:
+        main.state.chat = previous
+
+
+def test_ask_streams_deltas_and_ends_with_done(client: TestClient) -> None:
+    with _fake_chat([FakeMessage(content="A client MUST send it - RFC 9110 Section 7.2.")]):
+        response = client.post("/api/ask", json={"query": "Is Host mandatory?"})
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    events = _sse_events(response.text)
+
+    assert [e["type"] for e in events[:-1]] == ["delta"] * (len(events) - 1)
+    assert "".join(e["text"] for e in events if e["type"] == "delta") == (
+        "A client MUST send it - RFC 9110 Section 7.2."
+    )
+    done = events[-1]
+    assert done["type"] == "done"
+    # Citations reach the client resolved to a deep link, not as bare strings.
+    assert done["citations"] == [
+        {
+            "citation": "RFC 9110 Section 7.2",
+            "rfc_number": 9110,
+            "section_number": "7.2",
+            "source_url": "https://www.rfc-editor.org/rfc/rfc9110.html#section-7.2",
+        }
+    ]
+    assert done["usage"]["cost_usd"] >= 0
+
+
+def test_ask_reports_the_tools_it_called(client: TestClient) -> None:
+    """The trajectory is the evidence that an answer was retrieved, not recalled."""
+    with _fake_chat(
+        [
+            FakeMessage(
+                tool_calls=[
+                    FakeToolCall(
+                        id="call_1",
+                        function=FakeFunction("get_rfc_metadata", json.dumps({"rfc_number": 9110})),
+                    )
+                ]
+            ),
+            FakeMessage(content="Yes - RFC 9110 Section 7.2."),
+        ]
+    ):
+        response = client.post("/api/ask", json={"query": "Is Host mandatory?"})
+
+    events = _sse_events(response.text)
+    tool_events = [e for e in events if e["type"] == "tool"]
+    assert [e["tool"] for e in tool_events] == ["get_rfc_metadata"]
+    # The real RFC 9110 row, so the tool reached the database rather than a stub.
+    assert "9110" in tool_events[0]["result_preview"]
+    assert events[-1]["trajectory"]
+
+
+@pytest.mark.parametrize("payload", [{}, {"query": ""}, {"query": "x" * 1001}])
+def test_ask_rejects_invalid_questions(client: TestClient, payload: dict[str, object]) -> None:
+    assert client.post("/api/ask", json=payload).status_code == 422

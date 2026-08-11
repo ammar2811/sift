@@ -6,6 +6,7 @@ chosen for the consumer rather than mirroring the database.
 
 from __future__ import annotations
 
+import re
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -21,6 +22,18 @@ class SearchRequest(BaseModel):
     )
     rfc_numbers: list[int] = Field(default_factory=list, max_length=50)
     min_year: int | None = Field(default=None, ge=1969, le=2100)
+
+
+class AskRequest(BaseModel):
+    """One question for the agent.
+
+    Deliberately not a message list. The agent answers one grounded question per
+    request, which is what the golden set measures and what the citation guarantee is
+    defined over; carrying a conversation would mean answers resting on turns nothing
+    has evaluated.
+    """
+
+    query: str = Field(min_length=1, max_length=1000)
 
 
 class Citation(BaseModel):
@@ -100,6 +113,51 @@ def rfc_url(number: int, section: str | None = None) -> str:
     """Canonical RFC Editor URL, deep-linked to a section when there is one."""
     base = f"https://www.rfc-editor.org/rfc/rfc{number}.html"
     return f"{base}#section-{section}" if section else base
+
+
+_CITATION_PARTS = re.compile(r"RFC\s*(\d+)(?:\s*Section\s*(\d+(?:\.\d+)*))?", re.IGNORECASE)
+
+
+class AnswerCitation(BaseModel):
+    """A citation the agent wrote, resolved to somewhere the reader can go."""
+
+    citation: str
+    rfc_number: int
+    section_number: str | None = None
+    source_url: str
+
+
+def to_answer_citation(text: str) -> AnswerCitation | None:
+    """Turn "RFC 9110 Section 7.2" into a deep link.
+
+    The agent emits citations as the strings the tools handed it, which keeps it free
+    of any notion of a URL. Resolving them is this layer's job, and it happens here
+    rather than in the browser so both the shape and the link rule have one definition.
+    """
+    match = _CITATION_PARTS.search(text)
+    if match is None:
+        return None
+    number = int(match.group(1))
+    section = match.group(2)
+    return AnswerCitation(
+        citation=text,
+        rfc_number=number,
+        section_number=section,
+        source_url=rfc_url(number, section),
+    )
+
+
+def resolve_citations(texts: list[str]) -> list[AnswerCitation]:
+    """Resolve an answer's citations, dropping the ones a reader gains nothing from.
+
+    A model that writes "RFC 9110 Section 7.2 requires it, see RFC 9110" produces two
+    citations for one source, and the bare one is strictly less useful: it links to the
+    top of a document the reader was already given a section of. Bare citations survive
+    only when nothing more precise names the same RFC.
+    """
+    resolved = [c for c in (to_answer_citation(t) for t in texts) if c is not None]
+    sectioned = {c.rfc_number for c in resolved if c.section_number}
+    return [c for c in resolved if c.section_number or c.rfc_number not in sectioned]
 
 
 def to_citation(hit: Any) -> Citation:

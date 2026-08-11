@@ -12,16 +12,19 @@ and reports each one separately so a failure names its own cause.
 
 from __future__ import annotations
 
+import json
 import logging
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager
 from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 
 from apps.api.schemas import (
+    AskRequest,
     Citation,
     DependencyStatus,
     DocumentSummary,
@@ -30,18 +33,23 @@ from apps.api.schemas import (
     SearchRequest,
     SearchResponse,
     SupersessionChain,
+    resolve_citations,
     rfc_url,
     to_citation,
 )
 from packages.sift_core import db
+from packages.sift_core.agent import Agent
 from packages.sift_core.config import Settings, get_settings
 from packages.sift_core.providers import (
     CachedEmbeddings,
+    ChatModel,
     EmbeddingProvider,
+    build_chat_model,
     build_embedding_provider,
     embed_query_async,
 )
 from packages.sift_core.retrieval import SearchFilters, SearchMode, search
+from packages.sift_core.tools import ToolContext
 
 logger = logging.getLogger("sift.api")
 
@@ -54,6 +62,7 @@ class AppState:
 
     embeddings: EmbeddingProvider | None = None
     redis: Any = None
+    chat: ChatModel | None = None
 
 
 state = AppState()
@@ -77,10 +86,23 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.warning("redis unavailable; serving without an embedding cache")
         redis_client = None
 
+    # The agent is optional in the way the cache is optional: without Azure credentials
+    # retrieval still answers, and only /api/ask is unavailable. Failing startup
+    # instead would make a local, key-free checkout unable to run the search UI.
+    try:
+        state.chat = build_chat_model(settings)
+    except Exception as exc:
+        logger.warning("chat provider unavailable; /api/ask will return 503 (%s)", exc)
+        state.chat = None
+
     state.embeddings = CachedEmbeddings(provider, redis_client)
     state.redis = redis_client
     db.get_pool()
-    logger.info("ready: embeddings=%s", provider.name)
+    logger.info(
+        "ready: embeddings=%s chat=%s",
+        provider.name,
+        state.chat.deployment if state.chat else "unconfigured",
+    )
     yield
     db.close_pool()
 
@@ -180,6 +202,17 @@ async def ready() -> ReadinessResponse:
     else:
         checks.append(DependencyStatus(name="embeddings", ok=True, detail=provider.name))
 
+    # Reported but not required, for the same reason it does not block startup: an
+    # unconfigured agent costs /api/ask and nothing else, and taking the replica out of
+    # rotation over it would take search down too.
+    checks.append(
+        DependencyStatus(
+            name="chat",
+            ok=True,
+            detail=state.chat.deployment if state.chat else "not configured (/api/ask disabled)",
+        )
+    )
+
     # A corpus with no chunks is not an error, but it is not ready to answer either.
     required = {"postgres", "embeddings"}
     ready_now = all(c.ok for c in checks if c.name in required) and bool(chunks)
@@ -240,6 +273,103 @@ async def search_endpoint(request: SearchRequest, settings: SettingsDep) -> Sear
         total=len(results),
         took_ms=round((time.perf_counter() - started) * 1000, 1),
         results=results,
+    )
+
+
+def _sse(event: dict[str, Any]) -> str:
+    """One Server-Sent Event.
+
+    Every event travels as a JSON object on a single ``data:`` line with its own
+    ``type`` field, rather than using SSE's named-event form. The client then has one
+    parse and one switch, and adding an event type does not require it to subscribe to
+    a new name first.
+    """
+    return f"data: {json.dumps(event, default=str)}\n\n"
+
+
+def _ask_events(
+    chat: ChatModel, provider: EmbeddingProvider, settings: Settings, query: str
+) -> Iterator[str]:
+    """Run the agent and yield SSE frames.
+
+    Synchronous on purpose: the OpenAI client and psycopg are both blocking, and
+    Starlette runs a sync iterator in a threadpool. Writing it async would mean
+    wrapping every blocking call rather than none of them.
+
+    The database connection is held for the life of the stream, so concurrent asks are
+    bounded by SIFT_DB_POOL_MAX. That is the intended shape - an ask that cannot read
+    the corpus has nothing to say - but it is why the pool size and the ask rate limit
+    belong to the same conversation.
+    """
+    try:
+        with db.connection() as conn:
+            version_id = db.active_version_id(conn)
+            if version_id is None:
+                yield _sse({"type": "error", "message": "no active corpus version"})
+                return
+
+            version = db.corpus_version(conn, version_id)
+            if version and int(version["dimensions"]) != provider.dimensions:
+                yield _sse(
+                    {
+                        "type": "error",
+                        "message": (
+                            f"embedding width mismatch: provider gives {provider.dimensions} "
+                            f"dimensions, corpus was embedded at {version['dimensions']}. "
+                            "See /ready."
+                        ),
+                    }
+                )
+                return
+
+            ctx = ToolContext(conn, version_id, provider.embed_query)
+            agent = Agent(
+                chat.client,
+                chat.deployment,
+                max_depth=settings.agent_max_depth,
+                max_tool_calls=settings.agent_max_tool_calls,
+                max_completion_tokens=settings.agent_max_completion_tokens,
+                cost_prompt_per_m=settings.chat_cost_prompt_per_m,
+                cost_completion_per_m=settings.chat_cost_completion_per_m,
+            )
+            for event in agent.stream(query, ctx):
+                if event["type"] == "done":
+                    event = {
+                        **event,
+                        "citations": [
+                            c.model_dump() for c in resolve_citations(event["citations"])
+                        ],
+                    }
+                yield _sse(event)
+    except Exception as exc:
+        # The response has already begun, so an exception cannot become a 500. Report
+        # it in-band and let the client render it where the answer would have been.
+        logger.exception("ask failed")
+        yield _sse({"type": "error", "message": f"{type(exc).__name__}: {exc}"})
+
+
+@app.post("/api/ask", tags=["ask"])
+async def ask_endpoint(request: AskRequest, settings: SettingsDep) -> StreamingResponse:
+    """Answer one question, streaming the agent's work and its tokens."""
+    if state.embeddings is None:
+        raise HTTPException(503, "embedding provider not initialised")
+    if state.chat is None:
+        raise HTTPException(
+            503,
+            "chat provider not configured; set SIFT_AZURE_OPENAI_ENDPOINT and "
+            "SIFT_AZURE_OPENAI_API_KEY",
+        )
+
+    return StreamingResponse(
+        _ask_events(state.chat, state.embeddings, settings, request.query),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            # Nginx buffers proxied responses by default, which holds a stream until it
+            # ends and defeats the point. The deployed config disables buffering for
+            # this location; this header covers any proxy that was not configured.
+            "X-Accel-Buffering": "no",
+        },
     )
 
 
