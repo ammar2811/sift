@@ -133,6 +133,73 @@ deciding whether to force a citation redo, and `uncited_assertions` at 0.0000 sh
 is doing that job. **The judged number on unanswerable questions is the abstention rate;
 `abstention_rate` in the run files is a floor.**
 
+## Searching only what is in force
+
+The landing page offers "What must a client do when it receives a 417 response?" as an
+example. On the deployed site it answered badly: the agent cited the obsolete RFC 2616
+and then declined.
+
+Retrieval was not the problem. Both correct sections come back; they are just outranked.
+For "417 Expectation Failed client behavior":
+
+| rank | unfiltered | `current_only` |
+|---|---|---|
+| 1 | RFC 2616 §10.4.18 *(obsolete)* | RFC 9110 §15.5.18 |
+| 2 | RFC 2616 §14.20 *(obsolete)* | RFC 9110 §10.1.1 |
+| 3 | RFC 9110 §15.5.18 | RFC 8881 §15.1.13 |
+| 4 | RFC 9110 §10.1.1 | RFC 8881 §15.1.11.7 |
+
+The corpus keeps superseded documents deliberately - the supersession graph needs them -
+and they then compete for rank against the documents that replaced them. `search_rfcs`
+now defaults `current_only` to true; the model can still pass false for a question about
+history, and the other three tools reach obsolete documents regardless.
+
+Measured over the golden set, against the baseline above:
+
+| | baseline | `current_only` |
+|---|---|---|
+| judged correct | 0.7333 | 0.6949 |
+| grounded | 0.5769 | **0.6154** |
+| citation recall | 0.5192 | **0.5385** |
+| citation precision | 0.4519 | **0.5197** |
+| abstention rate | 0.8750 | **1.0000** |
+| cross-document judged | 0.6667 | **0.8182** |
+| normative judged | 0.6667 | 0.5000 |
+
+Read honestly: **judged correctness did not move.** The 0.038 fall is barely outside the
+0.033 noise band, and per question it is three better and five worse, one of those five
+being a judge failure rather than a wrong answer - so four, on 60 questions. Grounding
+and citation precision did improve, by more than the corresponding spread.
+
+The change is kept on the grounding numbers and on the mechanism, not on the headline.
+The mechanism is the part that does not depend on a noisy aggregate: the ranking table
+above is a direct observation, and answering a question about current behaviour out of a
+document that was superseded is the specific failure this project was built to avoid.
+
+## A correct answer labelled "no answer in the corpus"
+
+Fixing the ranking exposed a second bug, in the refusal detector rather than the agent.
+Six runs of the 417 question produced correct, well-cited answers, and `looks_like_refusal`
+flagged all six. The UI draws a "no answer in the corpus" badge on that flag, so the
+landing page's own example rendered a correct answer as a failure.
+
+The phrase was `does not support`:
+
+> the 417 status code indicates that **the server or intermediary does not support** the
+> expectation specified by the client
+
+"does not support" declines when its subject is the corpus and describes a protocol when
+its subject is a server, and a substring match cannot tell those apart. The ambiguous
+verbs - support, contain, specify, define, mention, state - now require a subject that
+refers to the documents rather than to anything the documents describe. The unambiguous
+markers ("does not exist", "no such", "cannot answer") are unchanged.
+
+Re-scoring the stored runs with the corrected detector: false positives on answers the
+judge graded correct fall from 2 to 1 in the two runs that had any, and one run's
+abstention detection improves from 7 of 8 to 8 of 8. The gain on the golden set is small
+because the golden set does not contain the question that exposed it. That is the
+argument for testing against the product as well as against the eval.
+
 ## Raising the depth cap changed nothing measurable
 
 A quarter of questions exhaust the loop's depth cap of 6 rounds. That looked like a

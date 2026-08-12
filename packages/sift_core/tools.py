@@ -81,11 +81,24 @@ def search_rfcs(
     ctx: ToolContext,
     query: str,
     k: int = 6,
-    current_only: bool = False,
+    current_only: bool = True,
     normative_only: bool = False,
     rfc_number: int | None = None,
 ) -> dict[str, Any]:
-    """Hybrid search over the corpus."""
+    """Hybrid search over the corpus, restricted to specifications in force by default.
+
+    ``current_only`` defaults to true because the corpus deliberately keeps superseded
+    documents - the supersession graph needs them - and they compete for rank against
+    the documents that replaced them. Measured on "what must a client do when it
+    receives a 417 response?", unfiltered search returns RFC 2616 at ranks 1 and 2 and
+    the current RFC 9110 sections at 3 and 4; filtered, the two RFC 9110 sections come
+    first. The agent read the obsolete text and either answered from a superseded spec
+    or gave up, which is precisely the failure this project exists to prevent.
+
+    The model can still pass ``current_only=false`` when a question is about history,
+    and ``get_rfc_metadata``, ``get_section`` and ``resolve_current_spec`` all reach
+    obsolete documents regardless of this default.
+    """
     hits = search(
         ctx.conn,
         ctx.version_id,
@@ -216,8 +229,13 @@ TOOLS: tuple[ToolSpec, ...] = (
                 },
                 "current_only": {
                     "type": "boolean",
-                    "description": "Exclude RFCs that have been obsoleted.",
-                    "default": False,
+                    "description": (
+                        "Restrict to specifications in force. True by default, which is "
+                        "what you want for any question about how a protocol behaves "
+                        "today. Set it to false only when the question is about history "
+                        "- what an older document said, or when a change happened."
+                    ),
+                    "default": True,
                 },
                 "normative_only": {
                     "type": "boolean",

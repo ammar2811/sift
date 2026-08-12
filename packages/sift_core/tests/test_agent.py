@@ -241,8 +241,41 @@ class TestRefusalDetection:
     def test_recognises_an_abstention(self, text: str) -> None:
         assert looks_like_refusal(text)
 
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "The corpus does not contain deployment statistics.",
+            "The retrieved sections do not mention a required port.",
+            "These documents do not prescribe explicit client behaviour.",
+            "The tools do not provide enough to answer that.",
+            # An adverb between "do not" and the verb; the first regex missed this.
+            "The retrieved texts do not explicitly state what a client must do.",
+        ],
+    )
+    def test_recognises_an_abstention_about_the_documents(self, text: str) -> None:
+        assert looks_like_refusal(text)
+
     def test_an_assertion_is_not_an_abstention(self) -> None:
         assert not looks_like_refusal("A client MUST send a Host header field.")
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            # The exact answer that was mislabelled. Correct, cited, and rendered under a
+            # "no answer in the corpus" badge because a server "does not support"
+            # something.
+            "The 417 status code indicates that the server or intermediary does not "
+            "support the expectation specified by the client.",
+            "A 417 merely indicates that the response chain does not support "
+            "expectations, for example an HTTP/1.0 server.",
+            "The origin server does not contain a representation for that target.",
+            "A cache does not store a response when the directive is present.",
+            "The behaviour is not defined for a negative value.",
+        ],
+    )
+    def test_describing_a_protocol_is_not_an_abstention(self, text: str) -> None:
+        """The verbs that decline also describe. Only the subject separates them."""
+        assert not looks_like_refusal(text)
 
     def test_citing_evidence_of_absence_still_counts_as_abstention(self) -> None:
         """Declining *and* citing what was checked is the best answer, not a failure."""

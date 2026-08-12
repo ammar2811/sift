@@ -159,31 +159,53 @@ def parse_citation(text: str) -> tuple[int, str | None] | None:
     return (int(match.group(1)), match.group(2)) if match else None
 
 
-# Phrasings observed in real abstentions on the golden set. The first pass used only
-# five markers and scored 5/8 where hand-reading found 8/8 correct abstentions - it
-# missed "do not specify", "does not contain" and "no mention of". Keyword matching is
-# inherently brittle here, which is why the number below is reported as a heuristic
-# floor rather than as the abstention rate.
+# Phrasings that decline regardless of what surrounds them.
 REFUSAL_MARKERS = (
     "does not exist",
     "no such",
-    "not defined",
     "cannot answer",
-    "do not support",
-    "does not support",
     "not in the corpus",
     "no information",
-    "not specified",
     "unable to find",
-    "do not specify",
-    "does not specify",
-    "not contain",
-    "does not contain",
     "no mention",
     "not documented",
+    "outside the scope",
+    "not enough information",
     "is not part of",
     "not registered",
-    "outside the scope",
+)
+
+# The hard case. "does not support" and "does not contain" decline when their subject is
+# the corpus and describe a protocol when their subject is a server, and a bare substring
+# match cannot tell those apart. It matched this, a correct and fully cited answer:
+#
+#   "the 417 status code indicates that the server or intermediary does not support
+#    the expectation specified by the client"
+#
+# and the UI then drew "no answer in the corpus" across it, on a question offered as an
+# example on the landing page. So these verbs now require a subject that refers to the
+# documents rather than to anything the documents describe.
+_CORPUS_NOUN = (
+    r"\b(?:corpus|rfcs?|specifications?|specs?|documents?|tools?|standards?"
+    r"|passages?|sections?|texts?|excerpts?|results?|sources?)\b"
+)
+# The optional adverb matters: "the retrieved texts do not explicitly state ..." is a
+# refusal, and requiring the verb to follow "do not" immediately missed it.
+_DECLINE_VERB = (
+    r"(?:do(?:es)?\s+not|don'?t|doesn'?t)\s+(?:\w+ly\s+)?"
+    r"(?:specify|define|contain|mention|support|state|address|cover|provide|prescribe|say)"
+)
+
+# "the RFCs do not specify ...", "the retrieved passages do not contain ..."
+_SUBJECT_THEN_VERB = re.compile(
+    rf"{_CORPUS_NOUN}(?:\W+\w+){{0,4}}\W+{_DECLINE_VERB}", re.IGNORECASE
+)
+
+# "... is not defined in RFC 9110", "that is not specified in any current specification"
+_VERB_THEN_SUBJECT = re.compile(
+    r"\b(?:is|are|was|were)\s+not\s+(?:defined|specified|mentioned|documented|described)\b"
+    rf"(?:\W+\w+){{0,4}}\W+{_CORPUS_NOUN}",
+    re.IGNORECASE,
 )
 
 
@@ -195,11 +217,14 @@ def looks_like_refusal(text: str) -> bool:
     checked - an earlier version treated any citation as evidence of a non-refusal and
     so scored that ideal behaviour as a failure.
 
-    This is a keyword heuristic standing in for judged grading, and it is reported as
-    such. It will miss a refusal phrased in words it does not know.
+    Still a heuristic standing in for judged grading, and still reported as one. It will
+    miss a refusal phrased in words it does not know; ``eval/results/ANSWERS.md`` puts a
+    number on that gap by comparing it against a judge.
     """
     lowered = text.lower()
-    return any(marker in lowered for marker in REFUSAL_MARKERS)
+    if any(marker in lowered for marker in REFUSAL_MARKERS):
+        return True
+    return bool(_SUBJECT_THEN_VERB.search(text) or _VERB_THEN_SUBJECT.search(text))
 
 
 class Agent:
