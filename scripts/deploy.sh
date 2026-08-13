@@ -63,8 +63,11 @@ require_image() {
     return 0
   fi
 
+  # `-I`, not `-X HEAD`: the latter sends the right verb but leaves curl waiting for a
+  # body the server will never send, so a perfectly good image times out and reports
+  # itself missing. That is how this check first failed - against an image that existed.
   url="https://ghcr.io/v2/${REPO}/${image}/manifests/${TAG}"
-  curl -fsS -o /dev/null -X HEAD -H "Authorization: Bearer $token" \
+  curl -fsS -I -o /dev/null --max-time 20 -H "Authorization: Bearer $token" \
     -H "Accept: application/vnd.oci.image.index.v1+json" \
     -H "Accept: application/vnd.oci.image.manifest.v1+json" \
     -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
