@@ -20,11 +20,11 @@
   --surface: #ffffff;
   --surface-sunken: #f4f4f2;
   --border: #e2e2dd;
-  --border-strong: #c9c9c1;
+  --border-strong: #8b8b83;
 
   --text: #1a1a18;
   --text-muted: #5c5c56;
-  --text-faint: #85857c;
+  --text-faint: #6f6f68;
 
   /* A single accent, kept dark enough for AA contrast on the light surface. */
   --accent: #7a4b1e;
@@ -49,11 +49,11 @@
     --surface: #1e1e23;
     --surface-sunken: #26262c;
     --border: #32323a;
-    --border-strong: #45454f;
+    --border-strong: #666672;
 
     --text: #ececeb;
     --text-muted: #a8a8a2;
-    --text-faint: #85857e;
+    --text-faint: #8d8d86;
 
     --accent: #e0a86a;
     --accent-hover: #f0bd85;

@@ -160,7 +160,7 @@ embeddings; `/api/ask` returns 503 and says why.
 
 ## Testing and deployment
 
-226 Python tests and 27 React tests. CI runs `ruff`, `mypy --strict`, and pytest against
+243 Python tests and 68 React tests. CI runs `ruff`, `mypy --strict`, and pytest against
 a real pgvector container - mocking the database would test the mock - plus eslint with
 `jsx-a11y` at strict, where an accessibility regression fails the build.
 
@@ -176,11 +176,21 @@ throughout for a student subscription's $100 ceiling.
 
 ## Accessibility
 
-WCAG 2.1 AA is claimed and enforced in CI. Skip link, a `/` shortcut that refuses to
-hijack while you are typing, focus management, one visible focus ring that is never
-suppressed, and a full dark theme built from tokens. The streaming answer is
-deliberately *not* a live region - announcing an answer token by token is unusable with
-a screen reader, so a single status message announces it once it settles.
+WCAG 2.1 AA, enforced in CI three ways: `jsx-a11y` at strict, an axe-core audit over the
+rendered tree in five states, and a contrast check over every token pair in both themes.
+Skip link, a `/` shortcut that refuses to hijack while you are typing, one visible focus
+ring that is never suppressed, and a full dark theme built from tokens.
+
+axe found nothing. The contrast audit found four real failures that had shipped - the
+trajectory and cost lines at 3.59:1 against a required 4.5:1, and the search input's own
+border at 1.61:1 against a required 3:1 - none of which jsx-a11y could see and none of
+which were visible to anyone looking at the page. They were found by computing them.
+[What was fixed, and what is still untested](docs/accessibility.md), including the
+honest gap: no manual screen-reader pass has been run.
+
+The streaming answer is deliberately *not* a live region - announcing an answer token by
+token is unusable with a screen reader, so a single status message announces it once it
+settles.
 
 ## Layout
 
