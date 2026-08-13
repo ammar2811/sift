@@ -327,6 +327,19 @@ resource web 'Microsoft.App/containerApps@2024-03-01' = {
             cpu: json('0.25')
             memory: '0.5Gi'
           }
+          env: [
+            // Where nginx proxies /api to. This has to be here rather than set by hand:
+            // the image defaults it to http://api:8000 for docker compose, that name does
+            // not resolve in Container Apps, and nginx aborts at startup rather than
+            // starting degraded. It had been set manually on the app, so the first
+            // deployment of this template silently removed it and the web revision failed
+            // to start - the previous revision kept serving, which is the only reason
+            // that was not an outage.
+            {
+              name: 'SIFT_API_ORIGIN'
+              value: 'https://${api.properties.configuration.ingress.fqdn}'
+            }
+          ]
         }
       ]
       scale: {

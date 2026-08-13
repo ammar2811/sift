@@ -7,18 +7,41 @@
     "params.json is gitignored because postgresAdminPassword and azureOpenAiKey are real",
     "credentials. Every parameter here has a default in main.bicep except the password.",
     "The Azure OpenAI account is not created by this template - it is provisioned by hand",
-    "in East US, where the model quota lives - so its endpoint and key are inputs."
+    "in East US, where the model quota lives - so its endpoint and key are inputs.",
+    "NOTE on the image tags: a template deployment sets them to whatever is here, so a",
+    "stale value silently rolls the apps back. Leave them at :latest and let",
+    "scripts/deploy.sh pin a release, or update them here whenever you pin one."
   ],
   "parameters": {
-    "location": { "value": "canadacentral" },
-    "namePrefix": { "value": "sift" },
-    "apiImage": { "value": "ghcr.io/ammar2811/sift/api:latest" },
-    "webImage": { "value": "ghcr.io/ammar2811/sift/web:latest" },
-    "postgresAdminUser": { "value": "sift" },
-    "postgresAdminPassword": { "value": "" },
-    "azureOpenAiEndpoint": { "value": "https://your-openai-resource.openai.azure.com/" },
-    "azureOpenAiKey": { "value": "" },
-    "enableRedis": { "value": true },
-    "askRateLimitPerMinute": { "value": 10 }
+    "location": {
+      "value": "canadacentral"
+    },
+    "namePrefix": {
+      "value": "sift"
+    },
+    "apiImage": {
+      "value": "ghcr.io/ammar2811/sift/api:latest"
+    },
+    "webImage": {
+      "value": "ghcr.io/ammar2811/sift/web:latest"
+    },
+    "postgresAdminUser": {
+      "value": "sift"
+    },
+    "postgresAdminPassword": {
+      "value": ""
+    },
+    "azureOpenAiEndpoint": {
+      "value": "https://your-openai-resource.openai.azure.com/"
+    },
+    "azureOpenAiKey": {
+      "value": ""
+    },
+    "enableRedis": {
+      "value": true
+    },
+    "askRateLimitPerMinute": {
+      "value": 10
+    }
   }
 }
