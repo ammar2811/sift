@@ -1,0 +1,2576 @@
+{
+  "label": "answers-final",
+  "created_at": "2026-08-13T18:45:21+00:00",
+  "config": {
+    "chat_deployment": "gpt-4.1-mini",
+    "judge_deployment": "gpt-5-mini",
+    "agent_max_depth": 6,
+    "agent_max_tool_calls": 12,
+    "agent_max_completion_tokens": 1200,
+    "embedding_provider": "azure:text-embedding-3-small@768",
+    "dimensions": 768,
+    "corpus_fingerprint": "t800-o80-m120-x2000-h1-d1",
+    "corpus": {
+      "chunks": 129109,
+      "documents": 1449,
+      "with_section": 124152,
+      "normative": 51802,
+      "mean_chars": 634
+    },
+    "git_sha": "e38ed44",
+    "python": "3.12.3"
+  },
+  "aggregate": {
+    "questions": 60,
+    "judged_correct": 0.7833,
+    "judged_score": 0.8167,
+    "graded": 60,
+    "ungraded": 0,
+    "grounded": 0.5577,
+    "citation_precision": 0.4904,
+    "citation_recall": 0.4904,
+    "mention_coverage": 0.9038,
+    "abstention_rate": 1.0,
+    "uncited_assertions": 0.0,
+    "hit_limit_rate": 0.2167,
+    "p50_latency_s": 5.57,
+    "mean_tool_calls": 2.52,
+    "mean_cost_usd": 0.002629,
+    "total_cost_usd": 0.1577
+  },
+  "by_type": {
+    "factual": {
+      "questions": 22,
+      "judged_correct": 0.8182,
+      "judged_score": 0.8636,
+      "graded": 22,
+      "ungraded": 0,
+      "grounded": 0.6364,
+      "citation_precision": 0.5909,
+      "citation_recall": 0.6364,
+      "mention_coverage": 0.8636,
+      "uncited_assertions": 0.0,
+      "hit_limit_rate": 0.2727,
+      "p50_latency_s": 6.07,
+      "mean_tool_calls": 2.91,
+      "mean_cost_usd": 0.003294,
+      "total_cost_usd": 0.0725
+    },
+    "normative": {
+      "questions": 18,
+      "judged_correct": 0.6667,
+      "judged_score": 0.6944,
+      "graded": 18,
+      "ungraded": 0,
+      "grounded": 0.5556,
+      "citation_precision": 0.5278,
+      "citation_recall": 0.4722,
+      "mention_coverage": 0.8889,
+      "uncited_assertions": 0.0,
+      "hit_limit_rate": 0.2778,
+      "p50_latency_s": 5.94,
+      "mean_tool_calls": 2.67,
+      "mean_cost_usd": 0.002785,
+      "total_cost_usd": 0.0501
+    },
+    "cross_document": {
+      "questions": 12,
+      "judged_correct": 0.75,
+      "judged_score": 0.7917,
+      "graded": 12,
+      "ungraded": 0,
+      "grounded": 0.4167,
+      "citation_precision": 0.25,
+      "citation_recall": 0.25,
+      "mention_coverage": 1.0,
+      "uncited_assertions": 0.0,
+      "hit_limit_rate": 0.0833,
+      "p50_latency_s": 5.01,
+      "mean_tool_calls": 2.42,
+      "mean_cost_usd": 0.001861,
+      "total_cost_usd": 0.0223
+    },
+    "unanswerable": {
+      "questions": 8,
+      "judged_correct": 1.0,
+      "judged_score": 1.0,
+      "graded": 8,
+      "ungraded": 0,
+      "abstention_rate": 1.0,
+      "uncited_assertions": 0.0,
+      "hit_limit_rate": 0.125,
+      "p50_latency_s": 3.14,
+      "mean_tool_calls": 1.25,
+      "mean_cost_usd": 0.001605,
+      "total_cost_usd": 0.0128
+    }
+  },
+  "questions": [
+    {
+      "id": "xdoc-2616-host-current",
+      "type": "cross_document",
+      "question": "RFC 2616 defined the Host header. Which specification defines it now, and what does it require?",
+      "answer": "The Host header field is currently defined in RFC 9110 (HTTP Semantics). It provides the host and port information from the target URI, enabling the origin server to distinguish among resources when servicing requests for multiple host names. A user agent MUST generate a Host header field in a request unless it sends that information as an \":authority\" pseudo-header field. The Host header SHOULD be sent as the first field in the header section of a request.\n\nFor example, a GET request to http://www.example.org/pub/WWW/ would begin with:\n\nGET /pub/WWW/ HTTP/1.1\nHost: www.example.org\n\nThis information is critical for handling requests, and it acts as an application-level routing mechanism. The Host header's role is supplemented in HTTP/2 and HTTP/3 by the \":authority\" pseudo-header field.\n\nReference: RFC 9110 Section 7.2 \"Host and :authority\"",
+      "citations": [
+        "RFC 9110",
+        "RFC 9110 Section 7.2"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "resolve_current_spec",
+          "arguments": "{\"rfc_number\":2616}",
+          "result_preview": "{\"requested\": 2616, \"current\": 9110, \"is_current\": false, \"chain\": [{\"rfc_number\": 2616, \"title\": \"Hypertext Transfer Protocol -- HTTP/1.1\", \"status\": \"DRAFT STANDARD\"}, {\"rfc_number\": 7230, \"title\": \"Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing\", \"status\": \"PROPOSED STANDARD\"}"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"Host header field\",\"rfc_number\":9110}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9110 Section 7.2\", \"rfc_number\": 9110, \"title\": \"HTTP Semantics\", \"section\": \"7.2\", \"section_title\": \"Host and :authority\", \"is_current\": true, \"text\": \"Host SHOULD send it as the first\\nfield in the header section of a request.\\n\\nFor example, a GET request to the ori"
+        }
+      ],
+      "latency_s": 5.94,
+      "usage": {
+        "prompt_tokens": 3397,
+        "completion_tokens": 232,
+        "tool_calls": 2,
+        "rounds": 3,
+        "cost_usd": 0.00173
+      },
+      "grounded": true,
+      "citation_precision": 0.5,
+      "citation_recall": 0.5,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "Answer correctly cites RFC 9110 Section 7.2 as the current definition and accurately states the requirement that a client MUST send the Host header in HTTP/1.1 requests (noting the :authority exception and related HTTP/2/3 behavior).",
+      "error": null
+    },
+    {
+      "id": "xdoc-2616-obsoleted-by",
+      "type": "cross_document",
+      "question": "Which RFCs obsoleted RFC 2616?",
+      "answer": "RFC 2616 was obsoleted by RFC 7230, RFC 7231, RFC 7232, RFC 7233, RFC 7234, and RFC 7235. ",
+      "citations": [
+        "RFC 2616",
+        "RFC 7230",
+        "RFC 7231",
+        "RFC 7232",
+        "RFC 7233",
+        "RFC 7234",
+        "RFC 7235"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "get_rfc_metadata",
+          "arguments": "{\"rfc_number\":2616}",
+          "result_preview": "{\"rfc_number\": 2616, \"title\": \"Hypertext Transfer Protocol -- HTTP/1.1\", \"year\": 1999, \"status\": \"DRAFT STANDARD\", \"abstract\": \"HTTP has been in use by the World-Wide Web global information initiative since 1990.  This specification defines the protocol referred to as \\\"HTTP/1.1\\\", and is an update "
+        }
+      ],
+      "latency_s": 2.52,
+      "usage": {
+        "prompt_tokens": 1323,
+        "completion_tokens": 63,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.00063
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "partial",
+      "judge_reason": "The answer correctly lists RFCs 7230\u20137235 as obsoleting RFC 2616 but omits the reference's additional point that those RFCs were later obsoleted by RFC 9110 and its companion RFCs.",
+      "error": null
+    },
+    {
+      "id": "xdoc-http-caching-current",
+      "type": "cross_document",
+      "question": "RFC 2616 section 13 covered HTTP caching. Where is caching specified today?",
+      "answer": "Caching in HTTP is specified today in RFC 9111, titled \"HTTP Caching.\" This document defines aspects of HTTP caching and reusing response messages, including the concepts of caches, shared caches, and private caches, and describes how caches improve performance by reusing prior response messages. RFC 9111 obsoletes RFC 7234, which in turn obsoleted section 13 of RFC 2616 where HTTP caching was originally covered.\n\nReference: RFC 9111 Section 1",
+      "citations": [
+        "RFC 9111",
+        "RFC 7234",
+        "RFC 2616",
+        "RFC 9111 Section 1"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "resolve_current_spec",
+          "arguments": "{\"rfc_number\":2616}",
+          "result_preview": "{\"requested\": 2616, \"current\": 9110, \"is_current\": false, \"chain\": [{\"rfc_number\": 2616, \"title\": \"Hypertext Transfer Protocol -- HTTP/1.1\", \"status\": \"DRAFT STANDARD\"}, {\"rfc_number\": 7230, \"title\": \"Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing\", \"status\": \"PROPOSED STANDARD\"}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":7234,\"section\":\"1\"}",
+          "result_preview": "{\"error\": \"RFC 7234 has no indexed section 1\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "get_rfc_metadata",
+          "arguments": "{\"rfc_number\":7234}",
+          "result_preview": "{\"rfc_number\": 7234, \"title\": \"Hypertext Transfer Protocol (HTTP/1.1): Caching\", \"year\": 2014, \"status\": \"PROPOSED STANDARD\", \"abstract\": \"The Hypertext Transfer Protocol (HTTP) is a stateless \\\\%application- level protocol for distributed, collaborative, hypertext information systems.  This documen"
+        },
+        {
+          "tool": "resolve_current_spec",
+          "arguments": "{\"rfc_number\":7234}",
+          "result_preview": "{\"requested\": 7234, \"current\": 9111, \"is_current\": false, \"chain\": [{\"rfc_number\": 7234, \"title\": \"Hypertext Transfer Protocol (HTTP/1.1): Caching\", \"status\": \"PROPOSED STANDARD\"}, {\"rfc_number\": 9111, \"title\": \"HTTP Caching\", \"status\": \"INTERNET STANDARD\"}], \"split_across\": null}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":9111,\"section\":\"1\"}",
+          "result_preview": "{\"citation\": \"RFC 9111 Section 1\", \"rfc_number\": 9111, \"section\": \"1\", \"section_title\": \"Introduction\", \"text\": \"The Hypertext Transfer Protocol (HTTP) is a stateless application-\\nlevel request/response protocol that uses extensible semantics and\\nself-descriptive messages for flexible interaction "
+        }
+      ],
+      "latency_s": 7.19,
+      "usage": {
+        "prompt_tokens": 5802,
+        "completion_tokens": 203,
+        "tool_calls": 5,
+        "rounds": 6,
+        "cost_usd": 0.002646
+      },
+      "grounded": true,
+      "citation_precision": 0.25,
+      "citation_recall": 0.5,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer correctly states that HTTP caching is specified in RFC 9111 and accurately notes that it obsoletes RFC 7234, which replaced section 13 of RFC 2616.",
+      "error": null
+    },
+    {
+      "id": "xdoc-tcp-current-spec",
+      "type": "cross_document",
+      "question": "RFC 793 specified TCP. What document specifies TCP now?",
+      "answer": "The document that currently specifies TCP is RFC 9293, which has replaced the older RFC 793. RFC 9293 is the current specification for TCP.",
+      "citations": [
+        "RFC 9293",
+        "RFC 793"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "resolve_current_spec",
+          "arguments": "{\"rfc_number\":793}",
+          "result_preview": "{\"requested\": 793, \"current\": 9293, \"is_current\": false, \"chain\": [{\"rfc_number\": 793, \"title\": \"Transmission Control Protocol\", \"status\": \"INTERNET STANDARD\"}, {\"rfc_number\": 9293, \"title\": \"Transmission Control Protocol (TCP)\", \"status\": \"INTERNET STANDARD\"}], \"split_across\": null}"
+        }
+      ],
+      "latency_s": 1.83,
+      "usage": {
+        "prompt_tokens": 1233,
+        "completion_tokens": 52,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.000576
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference: RFC 9293 obsoletes RFC 793 and is the current TCP specification.",
+      "error": null
+    },
+    {
+      "id": "xdoc-tls-current-version",
+      "type": "cross_document",
+      "question": "RFC 5246 defined TLS 1.2. What is the current TLS specification and how does it differ?",
+      "answer": "The current TLS specification is TLS 1.3, as defined in RFC 9846, which obsoletes RFC 5246 (TLS 1.2) among others. TLS 1.3 is a backward-compatible update to TLS 1.3 originally specified in RFC 8446 and it is the specification in force today.\n\nMajor differences and improvements of TLS 1.3 over TLS 1.2 include (RFC 9846 Section 1.3):\n- Removal of all legacy symmetric encryption algorithms in favor of Authenticated Encryption with Associated Data (AEAD) algorithms only.\n- The cipher suite concept is changed to separate authentication and key exchange from the record protection algorithm and hash functions.\n- A redesigned key derivation function using HKDF (HMAC-based Extract-and-Expand Key Derivation Function).\n- Restructured handshake state machine that removes superfluous messages like ChangeCipherSpec.\n- Elliptic curves are now in the base spec, and new signature algorithms like EdDSA are included; point format negotiation was removed.\n- RSA padding changed to RSASSA-PSS; removal of compression, DSA, and custom DHE groups.\n- The version negotiation mechanism in TLS 1.2 is deprecated for a version list extension for better compatibility.\n- Session resumption and PSK-based cipher suites simplified to a new PSK exchange.\n- Introduction of zero round-trip time (0-RTT) mode for faster connection setup at some security cost.\n- Removal of static RSA and Diffie-Hellman cipher suites; all key exchanges now provide forward secrecy.\n- All handshake messages after ServerHello are encrypted to enhance privacy.\n\nIn summary, TLS 1.3 modernizes the protocol by pruning legacy algorithms, improving security primitives and handshake efficiency, and enhancing privacy protections compared to TLS 1.2 (RFC 9846 Section 1.3).\n\nAdditionally, TLS 1.3 disallows negotiation of TLS 1.0 and 1.1, requires forward secrecy for session resumption, and improves clarity and semantics, among other minor technical improvements (RFC 9846 Sections 1 and 1.2).\n\nThus, TLS 1.3 is the current and recommended version, superseding TLS 1.2 with many structural and cryptographic enhancements.\n\nReferences: RFC 9846 Sections 1, 1.2, 1.3; RFC 5246 metadata.",
+      "citations": [
+        "RFC 9846",
+        "RFC 5246",
+        "RFC 8446",
+        "RFC 9846 Section 1.3"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "resolve_current_spec",
+          "arguments": "{\"rfc_number\":5246}",
+          "result_preview": "{\"requested\": 5246, \"current\": 9846, \"is_current\": false, \"chain\": [{\"rfc_number\": 5246, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.2\", \"status\": \"PROPOSED STANDARD\"}, {\"rfc_number\": 8446, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.3\", \"status\": \"PROPOSED ST"
+        },
+        {
+          "tool": "get_rfc_metadata",
+          "arguments": "{\"rfc_number\": 5246}",
+          "result_preview": "{\"rfc_number\": 5246, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.2\", \"year\": 2008, \"status\": \"PROPOSED STANDARD\", \"abstract\": \"This document specifies Version 1.2 of the Transport Layer Security (TLS) protocol.  The TLS protocol provides communications security over the Internet."
+        },
+        {
+          "tool": "get_rfc_metadata",
+          "arguments": "{\"rfc_number\": 9846}",
+          "result_preview": "{\"rfc_number\": 9846, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.3\", \"year\": 2026, \"status\": \"PROPOSED STANDARD\", \"abstract\": \"This document specifies version 1.3 of the Transport Layer Security (TLS) protocol. TLS allows client/server applications to communicate over the Interne"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\": \"differences between TLS 1.2 and TLS 1.3\", \"rfc_number\": 9846}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9846 Section 1.3\", \"rfc_number\": 9846, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.3\", \"section\": \"1.3\", \"section_title\": \"Major Differences from TLS 1.2\", \"is_current\": true, \"text\": \"The following is a list of the major functional differences betw"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\": \"differences between TLS 1.2 and TLS 1.3\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9846 Section 1.3\", \"rfc_number\": 9846, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.3\", \"section\": \"1.3\", \"section_title\": \"Major Differences from TLS 1.2\", \"is_current\": true, \"text\": \"The following is a list of the major functional differences betw"
+        }
+      ],
+      "latency_s": 10.55,
+      "usage": {
+        "prompt_tokens": 5638,
+        "completion_tokens": 630,
+        "tool_calls": 5,
+        "rounds": 3,
+        "cost_usd": 0.003263
+      },
+      "grounded": true,
+      "citation_precision": 0.25,
+      "citation_recall": 0.5,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer correctly identifies RFC 9846 as the current TLS 1.3 specification that obsoletes RFC 5246 (and RFC 8446) and accurately summarizes the key differences (removal of legacy algorithms, AEAD-only ciphers, HKDF-based key schedule, simplified handshake/0-RTT, encrypted post-ServerHello, and re",
+      "error": null
+    },
+    {
+      "id": "xdoc-http-methods-current",
+      "type": "cross_document",
+      "question": "RFC 7231 defined HTTP methods and status codes. Which RFC defines them now?",
+      "answer": "The HTTP methods and status codes that were defined in RFC 7231 are now defined in RFC 9110. RFC 9110 is the current specification that updates and obsoletes RFC 7231.",
+      "citations": [
+        "RFC 7231",
+        "RFC 9110"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "resolve_current_spec",
+          "arguments": "{\"rfc_number\":7231}",
+          "result_preview": "{\"requested\": 7231, \"current\": 9110, \"is_current\": false, \"chain\": [{\"rfc_number\": 7231, \"title\": \"Hypertext Transfer Protocol (HTTP/1.1): Semantics and Content\", \"status\": \"PROPOSED STANDARD\"}, {\"rfc_number\": 9110, \"title\": \"HTTP Semantics\", \"status\": \"INTERNET STANDARD\"}], \"split_across\": null}"
+        }
+      ],
+      "latency_s": 1.95,
+      "usage": {
+        "prompt_tokens": 1256,
+        "completion_tokens": 63,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.000603
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference: RFC 9110 obsoletes RFC 7231 and is the current specification defining HTTP methods and status codes.",
+      "error": null
+    },
+    {
+      "id": "xdoc-http-message-syntax",
+      "type": "cross_document",
+      "question": "Where is HTTP/1.1 message syntax and connection management specified now that RFC 7230 is obsolete?",
+      "answer": "The HTTP/1.1 message syntax and connection management that was previously specified in RFC 7230 is now specified in RFC 9110 (\"HTTP Semantics\"), which is the current specification in force. RFC 9110 splits the HTTP protocol definition across multiple documents, including itself for semantics and others for message syntax and connection management.\n\nSpecifically, RFC 9110 defines the abstract message syntax and semantics, describing the structure and expected behaviors of HTTP messages (Section 6 \"Message Abstraction\"). It also includes detailed syntax notation and the use of ABNF for the protocol (Sections 2.1 and Appendix A).\n\nThis is a shift from RFC 7230 to a more modular approach where semantics and message syntax evolve separately but consistently.\n\nIn summary, HTTP/1.1 message syntax and connection management details are in RFC 9110 now, which replaced RFC 7230 as the current standard.\n\nReferences: RFC 9110 Sections 1.1, 1.2, 2.1, 6, and Appendix A, also the RFC resolution chain from RFC 7230 to RFC 9110.",
+      "citations": [
+        "RFC 7230",
+        "RFC 9110"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "resolve_current_spec",
+          "arguments": "{\"rfc_number\":7230}",
+          "result_preview": "{\"requested\": 7230, \"current\": 9110, \"is_current\": false, \"chain\": [{\"rfc_number\": 7230, \"title\": \"Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing\", \"status\": \"PROPOSED STANDARD\"}, {\"rfc_number\": 9110, \"title\": \"HTTP Semantics\", \"status\": \"INTERNET STANDARD\"}], \"split_across\": [91"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\": 9110, \"section\": \"1.1\"}",
+          "result_preview": "{\"citation\": \"RFC 9110 Section 1.1\", \"rfc_number\": 9110, \"section\": \"1.1\", \"section_title\": \"Purpose\", \"text\": \"The Hypertext Transfer Protocol (HTTP) is a family of stateless,\\napplication-level, request/response protocols that share a generic\\ninterface, extensible semantics, and self-descriptive "
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\": \"message syntax connection management\", \"rfc_number\": 9110}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9110 Section 11.5\", \"rfc_number\": 9110, \"title\": \"HTTP Semantics\", \"section\": \"11.5\", \"section_title\": \"Establishing a Protection Space (Realm)\", \"is_current\": true, \"text\": \"a\\nsingle protection space cannot extend outside the scope of its\\nserver.\\n\\nFor historical r"
+        }
+      ],
+      "latency_s": 6.44,
+      "usage": {
+        "prompt_tokens": 3884,
+        "completion_tokens": 313,
+        "tool_calls": 3,
+        "rounds": 3,
+        "cost_usd": 0.002054
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "incorrect",
+      "judge_reason": "The answer wrongly asserts that RFC 9110 specifies the HTTP/1.1 message syntax and connection management; those aspects are actually specified in RFC 9112, while RFC 9110 covers semantics.",
+      "error": null
+    },
+    {
+      "id": "xdoc-expect-continue-current",
+      "type": "cross_document",
+      "question": "Which current RFC describes the Expect header and the 100-continue mechanism?",
+      "answer": "The current RFC that describes the Expect header and the 100-continue mechanism is RFC 9110. Specifically:\n\n- Section 10.1.1 of RFC 9110 describes the \"Expect\" header.\n- Section 15.2.1 of RFC 9110 describes the \"100 Continue\" status code and its behavior in relation to the Expect header.\n\nThese sections explain how a client uses the Expect header with a 100-continue expectation and how the server responds with the 100 (Continue) status to indicate it wishes to receive the request content.\n\nReference: RFC 9110 Sections 10.1.1 and 15.2.1",
+      "citations": [
+        "RFC 9110"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"Expect header 100-continue\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9110 Section 15.2.1\", \"rfc_number\": 9110, \"title\": \"HTTP Semantics\", \"section\": \"15.2.1\", \"section_title\": \"100 Continue\", \"is_current\": true, \"text\": \"The 100 (Continue) status code indicates that the initial part of a\\nrequest has been received and has not yet been r"
+        }
+      ],
+      "latency_s": 4.57,
+      "usage": {
+        "prompt_tokens": 2523,
+        "completion_tokens": 157,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.00126
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer correctly identifies RFC 9110 as the current RFC for Expect and 100-continue and correctly cites Section 10.1.1 for Expect and the status-code section (15.2.1) for 100 Continue, which aligns with the reference.",
+      "error": null
+    },
+    {
+      "id": "xdoc-tls12-still-referenced",
+      "type": "cross_document",
+      "question": "Does the current TLS specification still allow TLS 1.2, and what does it say about older versions?",
+      "answer": "The current TLS specification, RFC 9846 (TLS 1.3), does still allow TLS 1.2 to be negotiated for backward compatibility. Specifically, servers supporting TLS 1.2 and later must negotiate TLS 1.2 or prior versions as specified in RFC 5246 if the \"supported_versions\" extension is not present. However, implementations MUST NOT negotiate versions older than TLS 1.2, i.e., SSL 2.0, SSL 3.0, TLS 1.0, and TLS 1.1 are considered insufficiently secure and MUST NOT be negotiated. Additionally, cipher suites with strength less than 112 bits and RC4 cipher suites must not be offered or negotiated.\n\nIn summary, TLS 1.2 is still allowed but older versions are deprecated and disallowed. This reflects a security stance against older less secure versions.\n\nThis is summarized in RFC 9846 Sections 4.3.1, E, E.2, and E.5.",
+      "citations": [
+        "RFC 9846",
+        "RFC 5246"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "resolve_current_spec",
+          "arguments": "{\"rfc_number\":8446}",
+          "result_preview": "{\"requested\": 8446, \"current\": 9846, \"is_current\": false, \"chain\": [{\"rfc_number\": 8446, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.3\", \"status\": \"PROPOSED STANDARD\"}, {\"rfc_number\": 9846, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.3\", \"status\": \"PROPOSED ST"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"TLS 1.2 allowed older versions deprecated\",\"rfc_number\":9846}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9846 Section E.5\", \"rfc_number\": 9846, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.3\", \"section\": \"E.5\", \"section_title\": \"Security Restrictions Related to Backward Compatibility\", \"is_current\": true, \"text\": \"Implementations negotiating the use of "
+        }
+      ],
+      "latency_s": 5.44,
+      "usage": {
+        "prompt_tokens": 3320,
+        "completion_tokens": 256,
+        "tool_calls": 2,
+        "rounds": 3,
+        "cost_usd": 0.001738
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "incorrect",
+      "judge_reason": "While it correctly says RFC 9846 allows negotiating TLS 1.2 for compatibility, the answer invents stronger prohibitions (categorical MUST NOT for versions older than TLS 1.2 and bans on <112-bit/RC4 cipher suites) that the reference does not state; the reference only notes permitted negotiation and ",
+      "error": null
+    },
+    {
+      "id": "xdoc-dns-over-https-vs-classic",
+      "type": "cross_document",
+      "question": "RFC 1035 defined DNS over UDP and TCP. How is DNS carried over HTTPS?",
+      "answer": "DNS over HTTPS (DoH), defined in RFC 8484, is a protocol for sending DNS queries and responses over HTTPS. Each DNS query-response pair is mapped into an HTTP exchange, using HTTPS as the underlying transport for DNS messages. The specification assumes TLS and TCP for the security and transport layers, meaning DNS messages are carried over an encrypted HTTPS connection, which resembles a tunneling mechanism over TCP. This differs from traditional DNS over UDP or TCP defined in RFC 1035 by encapsulating DNS inside HTTPS requests and responses to enhance privacy and security (RFC 9210 Section A.32).\n\nMore detailed protocol mechanisms are in RFC 8484, but the available extracted information confirms that DNS over HTTPS uses HTTP exchanges over TLS-encrypted TCP connections to carry DNS messages.",
+      "citations": [
+        "RFC 8484",
+        "RFC 1035",
+        "RFC 9210"
+      ],
+      "refused": false,
+      "hit_limit": true,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"DNS over HTTPS\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9210 Section A.32\", \"rfc_number\": 9210, \"title\": \"DNS Transport over TCP - Operational Requirements\", \"section\": \"A.32\", \"section_title\": \"RFC 8484 - DNS Queries over HTTPS (DoH)\", \"is_current\": true, \"text\": \"The Proposed Standard [RFC8484] defines a protocol for send"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":8484,\"section\":\"1\"}",
+          "result_preview": "{\"error\": \"RFC 8484 has no indexed section 1\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":8484,\"section\":\"3\"}",
+          "result_preview": "{\"error\": \"RFC 8484 has no indexed section 3\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "get_rfc_metadata",
+          "arguments": "{\"rfc_number\":8484}",
+          "result_preview": "{\"rfc_number\": 8484, \"title\": \"DNS Queries over HTTPS (DoH)\", \"year\": 2018, \"status\": \"PROPOSED STANDARD\", \"abstract\": \"This document defines a protocol for sending DNS queries and getting DNS responses over HTTPS.  Each DNS query-response pair is mapped into an HTTP exchange.\", \"is_current\": true, "
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":8484,\"section\":\"2\"}",
+          "result_preview": "{\"error\": \"RFC 8484 has no indexed section 2\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":8484,\"section\":\"Abstract\"}",
+          "result_preview": "{\"error\": \"RFC 8484 has no indexed section Abstract\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        }
+      ],
+      "latency_s": 9.85,
+      "usage": {
+        "prompt_tokens": 14338,
+        "completion_tokens": 282,
+        "tool_calls": 6,
+        "rounds": 6,
+        "cost_usd": 0.006186
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer correctly states that RFC 8484 defines DNS over HTTPS by carrying DNS queries and responses inside HTTPS (HTTP exchanges over TLS/TCP), matching the reference description.",
+      "error": null
+    },
+    {
+      "id": "xdoc-http2-host-authority",
+      "type": "cross_document",
+      "question": "In HTTP/2, what replaces the Host header field?",
+      "answer": "In HTTP/2, the \"Host\" header field is supplanted by the \":authority\" pseudo-header field of a request's control data. A user agent must generate a Host header field in a request unless it sends that information as the \":authority\" pseudo-header field. This \":authority\" field thus replaces the traditional Host header in HTTP/2 requests.\n\nReference: RFC 9110 Section 7.2 \"Host and :authority\"",
+      "citations": [
+        "RFC 9110 Section 7.2"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"HTTP/2 Host header replacement\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9113 Section 8.2\", \"rfc_number\": 9113, \"title\": \"HTTP/2\", \"section\": \"8.2\", \"section_title\": \"HTTP Fields\", \"is_current\": true, \"text\": \"HTTP fields (Section 5 of [HTTP]) are conveyed by HTTP/2 in the\\nHEADERS, CONTINUATION, and PUSH_PROMISE frames, compressed with HPA"
+        }
+      ],
+      "latency_s": 3.94,
+      "usage": {
+        "prompt_tokens": 2232,
+        "completion_tokens": 112,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.001072
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference: it states that HTTP/2 uses the :authority pseudo-header in place of Host in requests and correctly notes a user agent must generate a Host header only if it does not supply that information via :authority.",
+      "error": null
+    },
+    {
+      "id": "xdoc-udp-still-current",
+      "type": "cross_document",
+      "question": "Is RFC 768 still the current specification for UDP?",
+      "answer": "Yes, RFC 768 is still the current specification for UDP (User Datagram Protocol). It is listed as an Internet Standard and has not been obsoleted by any newer RFC.",
+      "citations": [
+        "RFC 768"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "resolve_current_spec",
+          "arguments": "{\"rfc_number\":768}",
+          "result_preview": "{\"requested\": 768, \"current\": 768, \"is_current\": true, \"chain\": [{\"rfc_number\": 768, \"title\": \"User Datagram Protocol\", \"status\": \"INTERNET STANDARD\"}], \"split_across\": null}"
+        }
+      ],
+      "latency_s": 2.02,
+      "usage": {
+        "prompt_tokens": 1202,
+        "completion_tokens": 56,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.00057
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 0.5,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference by stating RFC 768 is still an Internet Standard and has not been obsoleted.",
+      "error": null
+    },
+    {
+      "id": "fact-host-header",
+      "type": "factual",
+      "question": "What information does the HTTP Host header field provide?",
+      "answer": "The HTTP Host header field provides the host and port information from the target URI. This allows the origin server to distinguish among resources when servicing requests for multiple host names. A user agent must generate a Host header field in a request unless it sends that information as an \":authority\" pseudo-header field in HTTP/2 or HTTP/3. The Host header field contains the \"uri-host\" and optionally the port.\n\nIn HTTP/1.1, a client must send a Host header field in all request messages. If the target URI includes an authority component, the Host field value should be identical to that authority component, excluding any userinfo part. If the authority component is missing, the Host header should have an empty value. Servers must respond with a 400 Bad Request if the Host header is missing or invalid.\n\nHence, the Host header is critical for handling requests to servers that serve multiple host names.\n\nThis is described in RFC 9110 Section 7.2 and further details in RFC 9112 Sections 3.2 and C.2.1.",
+      "citations": [
+        "RFC 9110 Section 7.2",
+        "RFC 9112"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"HTTP Host header field\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9110 Section 7.2\", \"rfc_number\": 9110, \"title\": \"HTTP Semantics\", \"section\": \"7.2\", \"section_title\": \"Host and :authority\", \"is_current\": true, \"text\": \"The \\\"Host\\\" header field in a request provides the host and port\\ninformation from the target URI, enabling the ori"
+        }
+      ],
+      "latency_s": 4.52,
+      "usage": {
+        "prompt_tokens": 2359,
+        "completion_tokens": 235,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.00132
+      },
+      "grounded": true,
+      "citation_precision": 0.5,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer accurately states that Host carries the target URI host and optional port to distinguish among hostnames and correctly adds RFC-conforming details about generation, HTTP/2/3 :authority, empty-authority handling, and the requirement for clients/servers in HTTP/1.1.",
+      "error": null
+    },
+    {
+      "id": "fact-417-meaning",
+      "type": "factual",
+      "question": "What does the HTTP 417 status code mean?",
+      "answer": "The HTTP 417 status code means \"Expectation Failed.\" It indicates that the expectation given in the request's Expect header field could not be met by at least one of the inbound servers. \n\nReference: RFC 9110 Section 15.5.18",
+      "citations": [
+        "RFC 9110 Section 15.5.18"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"HTTP 417 status code\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9110 Section 15.5.18\", \"rfc_number\": 9110, \"title\": \"HTTP Semantics\", \"section\": \"15.5.18\", \"section_title\": \"417 Expectation Failed\", \"is_current\": true, \"text\": \"The 417 (Expectation Failed) status code indicates that the\\nexpectation given in the request's Expect he"
+        }
+      ],
+      "latency_s": 2.95,
+      "usage": {
+        "prompt_tokens": 2404,
+        "completion_tokens": 73,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.001078
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference exactly: 417 Expectation Failed means the Expect header's requirement could not be met by at least one of the inbound servers.",
+      "error": null
+    },
+    {
+      "id": "fact-get-method",
+      "type": "factual",
+      "question": "What does the HTTP GET method request?",
+      "answer": "The HTTP GET method requests the transfer of a current selected representation for the target resource. Essentially, it is used to retrieve identifiable information associated with the target URI, typically resulting in a 200 (OK) response with the requested information. It is the primary mechanism for information retrieval in HTTP and supports performance optimizations like caching. GET requests are usually safe and side-effect free, used for obtaining data without modifying it.\n\nA GET request can also be altered to request only part of the representation by sending a Range header field. Generally, a client should not send content in a GET request unless explicitly supported by the origin server as it might cause request rejection or connection closure due to security concerns.\n\nAdditionally, the response to a GET request is cacheable unless specified otherwise by the Cache-Control header. However, care should be taken when sensitive data is included in the URI of a GET request, and in some cases, using POST might be preferable for transmitting such information in the request content instead.\n\nThis is summarized from RFC 9110 Section 9.3.1.",
+      "citations": [
+        "RFC 9110 Section 9.3.1"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"HTTP GET method request\",\"k\":5}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 7480 Section 4.1\", \"rfc_number\": 7480, \"title\": \"HTTP Usage in the Registration Data Access Protocol (RDAP)\", \"section\": \"4.1\", \"section_title\": \"HTTP Methods\", \"is_current\": true, \"text\": \"Clients use the GET method to retrieve a response body and use the\\nHEAD method"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":9110,\"section\":\"9.3.1\"}",
+          "result_preview": "{\"citation\": \"RFC 9110 Section 9.3.1\", \"rfc_number\": 9110, \"section\": \"9.3.1\", \"section_title\": \"GET\", \"text\": \"The GET method requests transfer of a current selected representation\\nfor the target resource.  A successful response reflects the quality\\nof \\\"sameness\\\" identified by the target URI (S"
+        }
+      ],
+      "latency_s": 5.88,
+      "usage": {
+        "prompt_tokens": 4497,
+        "completion_tokens": 263,
+        "tool_calls": 2,
+        "rounds": 3,
+        "cost_usd": 0.00222
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer restates the reference's definition that GET transfers a current selected representation of the target resource and adds consistent, accurate details about typical responses, safety, caching, range requests, and payload handling.",
+      "error": null
+    },
+    {
+      "id": "fact-date-header",
+      "type": "factual",
+      "question": "What does the HTTP Date header field represent?",
+      "answer": "The HTTP Date header field represents the date and time at which the message was originated. It has the same semantics as the Origination Date Field (orig-date) defined in Section 3.6.1 of RFC 5322. The field value is an HTTP-date. A sender generating a Date header field should produce the best available approximation of the date and time of message generation, ideally representing the moment just before generating the message content, but in practice it can be generated at any time during message origination.\n\nExample:\nDate: Tue, 15 Nov 1994 08:12:31 GMT\n\n(RFC 9110 Section 6.6.1)",
+      "citations": [
+        "RFC 5322",
+        "RFC 9110 Section 6.6.1"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"HTTP Date header field\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9110 Section 6.6.1\", \"rfc_number\": 9110, \"title\": \"HTTP Semantics\", \"section\": \"6.6.1\", \"section_title\": \"Date\", \"is_current\": true, \"text\": \"The \\\"Date\\\" header field represents the date and time at which the\\nmessage was originated, having the same semantics as the O"
+        }
+      ],
+      "latency_s": 4.51,
+      "usage": {
+        "prompt_tokens": 2119,
+        "completion_tokens": 157,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.001099
+      },
+      "grounded": true,
+      "citation_precision": 0.5,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference exactly and correctly adds accurate, consistent details about semantics, format, and sender guidance from RFC 9110 Section 6.6.1.",
+      "error": null
+    },
+    {
+      "id": "fact-must-definition",
+      "type": "factual",
+      "question": "In IETF specifications, what does the keyword MUST mean?",
+      "answer": "In IETF specifications, the keyword MUST (or the terms \"REQUIRED\" or \"SHALL\") mean that the definition is an absolute requirement of the specification. This indicates a mandatory requirement that must be followed.\n\nThis is defined in RFC 2119 Section 1.",
+      "citations": [
+        "RFC 2119 Section 1"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"define MUST keyword\",\"k\":3}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 2119 Section 1\", \"rfc_number\": 2119, \"title\": \"Key words for use in RFCs to Indicate Requirement Levels\", \"section\": \"1\", \"section_title\": \"MUST   This word, or the terms \\\"REQUIRED\\\" or \\\"SHALL\\\", mean that the\", \"is_current\": true, \"text\": \"definition is an absolute "
+        }
+      ],
+      "latency_s": 3.53,
+      "usage": {
+        "prompt_tokens": 1497,
+        "completion_tokens": 79,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.000725
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference by stating that MUST/REQUIRED/SHALL are absolute, mandatory requirements of the specification (RFC 2119).",
+      "error": null
+    },
+    {
+      "id": "fact-may-definition",
+      "type": "factual",
+      "question": "What does the keyword MAY mean in an RFC?",
+      "answer": "The keyword \"MAY\" in an RFC means that an item is truly optional. One vendor may choose to include the item because a particular marketplace requires it or because the vendor feels that it enhances the product, while another vendor may omit the same item. An implementation which does not include a particular option MUST be prepared to interoperate with another implementation that does include the option, though perhaps with reduced functionality. Similarly, an implementation that does include a particular option MUST be prepared to interoperate with another implementation that does not include the option (except for the feature the option provides) (RFC 2119 Section 5).",
+      "citations": [
+        "RFC 2119 Section 5"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"keyword MAY meaning\",\"k\":3}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 2119 Section 5\", \"rfc_number\": 2119, \"title\": \"Key words for use in RFCs to Indicate Requirement Levels\", \"section\": \"5\", \"section_title\": \"MAY   This word, or the adjective \\\"OPTIONAL\\\", mean that an item is\", \"is_current\": true, \"text\": \"truly optional.  One vendor m"
+        }
+      ],
+      "latency_s": 5.55,
+      "usage": {
+        "prompt_tokens": 1660,
+        "completion_tokens": 148,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.000901
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference: it states MAY means truly optional and correctly echoes the RFC 2119 explanation about interoperability and optional features.",
+      "error": null
+    },
+    {
+      "id": "fact-jwt-exp-claim",
+      "type": "factual",
+      "question": "What does the exp claim in a JSON Web Token specify?",
+      "answer": "The provided search did not return an exact definition of the \"exp\" claim in a JSON Web Token (JWT) from the queried RFCs. The standard RFC for JWT is RFC 7519, but no precise section defining the \"exp\" claim was retrieved.\n\nBased on the information retrieved, \"exp\" is a well-known registered claim name in JWTs typically used to indicate the expiration time of the token, i.e., the time after which the token MUST NOT be accepted for processing.\n\nHowever, as the tools did not return a direct citation, I cannot provide a normative definition or precise explanation from an RFC text.\n\nTherefore, I must say plainly: The tools do not contain a directly cited explanation of the \"exp\" claim in a JWT, so I cannot provide a definitive answer with RFC citation.",
+      "citations": [
+        "RFC 7519"
+      ],
+      "refused": true,
+      "hit_limit": true,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"exp claim JSON Web Token\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 8693 Section 7.4\", \"rfc_number\": 8693, \"title\": \"OAuth 2.0 Token Exchange\", \"section\": \"7.4\", \"section_title\": \"JSON Web Token Claims Registration\", \"is_current\": true, \"text\": \"IANA has registered the following Claims in the \\\"JSON Web Token\\nClaims\\\" subregistry of t"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":7519,\"section\":\"4.1.4\"}",
+          "result_preview": "{\"error\": \"RFC 7519 has no indexed section 4.1.4\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"exp claim\",\"rfc_number\":7519,\"normative_only\":true}",
+          "result_preview": "{\"results\": []}"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"exp claim\",\"rfc_number\":7519,\"current_only\":false}",
+          "result_preview": "{\"results\": []}"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"exp claim JSON Web Token normative\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 8693 Section 7.4\", \"rfc_number\": 8693, \"title\": \"OAuth 2.0 Token Exchange\", \"section\": \"7.4\", \"section_title\": \"JSON Web Token Claims Registration\", \"is_current\": true, \"text\": \"IANA has registered the following Claims in the \\\"JSON Web Token\\nClaims\\\" subregistry of t"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":7519,\"section\":\"4.1.4\"}",
+          "result_preview": "{\"error\": \"RFC 7519 has no indexed section 4.1.4\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        }
+      ],
+      "latency_s": 11.41,
+      "usage": {
+        "prompt_tokens": 18634,
+        "completion_tokens": 315,
+        "tool_calls": 6,
+        "rounds": 6,
+        "cost_usd": 0.007958
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer correctly states that the 'exp' claim indicates the expiration time on or after which the JWT must not be accepted for processing, matching the reference.",
+      "error": null
+    },
+    {
+      "id": "fact-jwt-iss-claim",
+      "type": "factual",
+      "question": "What does the iss claim identify in a JWT?",
+      "answer": "The \"iss\" (issuer) claim in a JWT identifies the issuer of the token. When a JWT contains this claim, the application receiving it MUST validate that the cryptographic keys used for the JWT's cryptographic operations actually belong to the issuer named in the \"iss\" claim. If the keys do not belong to the issuer, the application must reject the JWT. The method of determining which keys belong to an issuer is application-specific. For example, OpenID Connect uses \"https\" URLs that reference a metadata document containing a URI from which the issuer's keys are retrieved. Other applications may use different means to bind keys to issuers.\n\nIn summary, the \"iss\" claim identifies the principal that issued the JWT, and is essential for validating the trustworthiness of the token (i.e., confirming its origin and integrity) (RFC 8725 Section 3.8).",
+      "citations": [
+        "RFC 8725 Section 3.8"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"iss claim JWT\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9711 Section D\", \"rfc_number\": 9711, \"title\": \"The Entity Attestation Token (EAT)\", \"section\": \"D\", \"section_title\": \"CDDL for CWT and JWT\", \"is_current\": true, \"text\": \"iat-claim-label => ~time )\\n$$Claims-Set-Claims //= ( cti-claim-label => bytes )\\n\\niss-claim-label"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":9711,\"section\":\"D\"}",
+          "result_preview": "{\"citation\": \"RFC 9711 Section D\", \"rfc_number\": 9711, \"section\": \"D\", \"section_title\": \"CDDL for CWT and JWT\", \"text\": \"[RFC8392] was published before CDDL was available and thus is\\nspecified in prose, not CDDL.  In the following example, CDDL\\nspecifies CWT as it is needed to complete this specif"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"iss claim in JWT identification\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9493 Section 4.1\", \"rfc_number\": 9493, \"title\": \"Subject Identifiers for Security Event Tokens\", \"section\": \"4.1\", \"section_title\": \"JWT \\\"sub_id\\\" Claim\", \"is_current\": true, \"text\": \"The JWT \\\"sub\\\" Claim is defined in Section 4.1.2 of [RFC7519] as\\ncontaining a stri"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"iss claim identifies JWT issuer\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 8725 Section 3.8\", \"rfc_number\": 8725, \"title\": \"JSON Web Token Best Current Practices\", \"section\": \"3.8\", \"section_title\": \"Validate Issuer and Subject\", \"is_current\": true, \"text\": \"When a JWT contains an \\\"iss\\\" (issuer) claim, the application MUST\\nvalidate that th"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":8725,\"section\":\"3.8\"}",
+          "result_preview": "{\"citation\": \"RFC 8725 Section 3.8\", \"rfc_number\": 8725, \"section\": \"3.8\", \"section_title\": \"Validate Issuer and Subject\", \"text\": \"When a JWT contains an \\\"iss\\\" (issuer) claim, the application MUST\\nvalidate that the cryptographic keys used for the cryptographic\\noperations in the JWT belong to th"
+        }
+      ],
+      "latency_s": 13.16,
+      "usage": {
+        "prompt_tokens": 24972,
+        "completion_tokens": 283,
+        "tool_calls": 5,
+        "rounds": 6,
+        "cost_usd": 0.010442
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer states that the 'iss' claim identifies the principal that issued the JWT, matching the reference; the additional details about validating issuer keys are supplementary best-practice information and do not contradict the reference.",
+      "error": null
+    },
+    {
+      "id": "fact-jwt-registered-claims",
+      "type": "factual",
+      "question": "Which claim names are registered in the JWT specification?",
+      "answer": "The JWT specification (RFC 7519) itself defines a set of registered claim names commonly used, such as \"iss\" (issuer), \"sub\" (subject), \"aud\" (audience), \"exp\" (expiration time), \"nbf\" (not before), \"iat\" (issued at), and \"jti\" (JWT ID). These registered claims are standard in JWT payloads.\n\nAdditionally, RFC 9711 (Section 10.2) registers further claim names to the JWT Claims registry established by RFC 7519.\n\nThe typical registered claim names from the JWT spec are \"iss\", \"sub\", \"aud\", \"exp\", \"nbf\", \"iat\", and \"jti\".\n\nThis concise list comes from the combination of the core JWT spec and the claims registered by later RFCs extending JWT claims registry, as confirmed in RFC 9711 Section 10.2.\n\nReference: RFC 9711 Section 10.2 and examples seen in RFC 9901 Section A.3.",
+      "citations": [
+        "RFC 7519",
+        "RFC 9711",
+        "RFC 9711 Section 10.2",
+        "RFC 9901"
+      ],
+      "refused": false,
+      "hit_limit": true,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"registered claim names JWT\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9901 Section A.3\", \"rfc_number\": 9901, \"title\": \"Selective Disclosure for JSON Web Tokens\", \"section\": \"A.3\", \"section_title\": \"SD-JWT-Based Verifiable Credentials (SD-JWT VC)\", \"is_current\": true, \"text\": \"have the following Processed SD-\\nJWT Payload available for fu"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":7519,\"section\":\"4.1\"}",
+          "result_preview": "{\"error\": \"RFC 7519 has no indexed section 4.1\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":7519,\"section\":\"4.1\"}",
+          "result_preview": "{\"error\": \"RFC 7519 has no indexed section 4.1\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":7519,\"section\":\"4\"}",
+          "result_preview": "{\"error\": \"RFC 7519 has no indexed section 4\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":7519,\"section\":\"4.1\"}",
+          "result_preview": "{\"error\": \"RFC 7519 has no indexed section 4.1\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "get_rfc_metadata",
+          "arguments": "{\"rfc_number\":7519}",
+          "result_preview": "{\"rfc_number\": 7519, \"title\": \"JSON Web Token (JWT)\", \"year\": 2015, \"status\": \"PROPOSED STANDARD\", \"abstract\": \"JSON Web Token (JWT) is a compact, URL-safe means of representing claims to be transferred between two parties.  The claims in a JWT are encoded as a JSON object that is used as the payloa"
+        }
+      ],
+      "latency_s": 9.06,
+      "usage": {
+        "prompt_tokens": 12997,
+        "completion_tokens": 341,
+        "tool_calls": 6,
+        "rounds": 6,
+        "cost_usd": 0.005744
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "partial",
+      "judge_reason": "The answer correctly lists iss, sub, aud, exp, nbf, iat and jti but omits the reference\u2019s point that none are mandatory (while adding extraneous notes about RFC 9711).",
+      "error": null
+    },
+    {
+      "id": "fact-oauth-roles",
+      "type": "factual",
+      "question": "What roles does the OAuth 2.0 framework define?",
+      "answer": "The OAuth 2.0 framework defines several roles in its authorization process:\n\n- Client: The application requesting access to a protected resource on behalf of the resource owner.\n- Resource Owner: The entity capable of granting access to a protected resource.\n- Authorization Server: Issues access tokens to the client after successfully authenticating the resource owner and obtaining authorization.\n- Resource Server: The server hosting the protected resources, which accepts and validates access tokens from clients.\n\nThis is implied from RFC 9200 Section 3.1, which describes that the client obtains scoped access to a resource with permission from the resource owner, tokens are issued by an authorization server, and the client uses tokens to access resources on the resource server.\n\nRFC 9200 Section B describes roles and responsibilities such as authenticating the client, matching tokens, checking authorization, and safely storing credentials, which align to the roles above.\n\nA direct concise list from the original OAuth 2.0 RFC 6749 text was not available in the provided tool results.\n\nSo, the OAuth 2.0 framework defines the roles of Client, Resource Owner, Authorization Server, and Resource Server.\n\nCitations: RFC 9200 Section 3.1 and Section B.",
+      "citations": [
+        "RFC 9200 Section 3.1",
+        "RFC 9200",
+        "RFC 6749"
+      ],
+      "refused": false,
+      "hit_limit": true,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"OAuth 2.0 framework roles\",\"k\":5}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9200 Section 5\", \"rfc_number\": 9200, \"title\": \"Authentication and Authorization for Constrained Environments Using the OAuth 2.0 Framework (ACE-OAuth)\", \"section\": \"5\", \"section_title\": \"Framework\", \"is_current\": true, \"text\": \"a different security\\nprotocol complying "
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":6749,\"section\":\"1.1\"}",
+          "result_preview": "{\"error\": \"RFC 6749 has no indexed section 1.1\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":6749,\"section\":\"1\"}",
+          "result_preview": "{\"error\": \"RFC 6749 has no indexed section 1\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"roles OAuth 2.0 framework\",\"k\":3}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9200 Section 3.1\", \"rfc_number\": 9200, \"title\": \"Authentication and Authorization for Constrained Environments Using the OAuth 2.0 Framework (ACE-OAuth)\", \"section\": \"3.1\", \"section_title\": \"OAuth 2.0\", \"is_current\": true, \"text\": \"The OAuth 2.0 authorization framework"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":6749,\"section\":\"1.3\"}",
+          "result_preview": "{\"error\": \"RFC 6749 has no indexed section 1.3\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":6749,\"section\":\"1.2\"}",
+          "result_preview": "{\"error\": \"RFC 6749 has no indexed section 1.2\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        }
+      ],
+      "latency_s": 14.12,
+      "usage": {
+        "prompt_tokens": 11644,
+        "completion_tokens": 391,
+        "tool_calls": 6,
+        "rounds": 6,
+        "cost_usd": 0.005283
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer lists the four roles (client, resource owner, authorization server, resource server) exactly as the reference and accurately describes each role.",
+      "error": null
+    },
+    {
+      "id": "fact-oauth-auth-code",
+      "type": "factual",
+      "question": "What is the authorization code grant in OAuth 2.0?",
+      "answer": "The authorization code grant in OAuth 2.0 is a grant type recommended for cases where the client acts on behalf of the resource owner. It is used when the client has the ability to perform an authorization request and then receive an authorization code, which can subsequently be exchanged for an access token. This grant type is considered more secure, especially with the use of PKCE (Proof Key for Code Exchange), which protects against authorization code injection attacks. Public clients MUST use PKCE, and it is recommended for confidential clients as well. Authorization servers must support PKCE and validate its correct usage. The authorization code grant helps prevent attacks such as CSRF and authorization code injection and is considered suitable for web applications and native apps that require refreshing access tokens (RFC 9200 Section 5.4; RFC 9700 Section 2.1.1).",
+      "citations": [
+        "RFC 9200 Section 5.4",
+        "RFC 9700 Section 2.1.1"
+      ],
+      "refused": false,
+      "hit_limit": true,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"authorization code grant OAuth 2.0\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9200 Section 5.4\", \"rfc_number\": 9200, \"title\": \"Authentication and Authorization for Constrained Environments Using the OAuth 2.0 Framework (ACE-OAuth)\", \"section\": \"5.4\", \"section_title\": \"Authorization Grants\", \"is_current\": true, \"text\": \"such as an assertion-based"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":6749,\"section\":\"1.3\"}",
+          "result_preview": "{\"error\": \"RFC 6749 has no indexed section 1.3\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"authorization code grant\",\"rfc_number\":6749}",
+          "result_preview": "{\"results\": []}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":9700,\"section\":\"2.1.1\"}",
+          "result_preview": "{\"citation\": \"RFC 9700 Section 2.1.1\", \"rfc_number\": 9700, \"section\": \"2.1.1\", \"section_title\": \"Authorization Code Grant\", \"text\": \"Clients MUST prevent authorization code injection attacks (see\\nSection 4.5) and misuse of authorization codes using one of the\\nfollowing options:\\n\\n*  Public client"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"authorization code grant description OAuth 2.0\",\"k\":1}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9200 Section 5.4\", \"rfc_number\": 9200, \"title\": \"Authentication and Authorization for Constrained Environments Using the OAuth 2.0 Framework (ACE-OAuth)\", \"section\": \"5.4\", \"section_title\": \"Authorization Grants\", \"is_current\": true, \"text\": \"such as an assertion-based"
+        },
+        {
+          "tool": "resolve_current_spec",
+          "arguments": "{\"rfc_number\":6749}",
+          "result_preview": "{\"requested\": 6749, \"current\": 6749, \"is_current\": true, \"chain\": [{\"rfc_number\": 6749, \"title\": \"The OAuth 2.0 Authorization Framework\", \"status\": \"PROPOSED STANDARD\"}], \"split_across\": null}"
+        }
+      ],
+      "latency_s": 12.77,
+      "usage": {
+        "prompt_tokens": 18935,
+        "completion_tokens": 317,
+        "tool_calls": 6,
+        "rounds": 6,
+        "cost_usd": 0.008081
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer states that the authorization code is obtained via the authorization server and exchanged for an access token, matching the reference, and the additional PKCE and usage details are consistent with the spec and do not contradict the reference.",
+      "error": null
+    },
+    {
+      "id": "fact-oauth-access-token",
+      "type": "factual",
+      "question": "What is an access token in OAuth 2.0?",
+      "answer": "An access token in OAuth 2.0 is a credential needed to access protected resources. It is a data structure representing authorization permissions issued by the authorization server (AS) to the client. Access tokens are generated by the authorization server and consumed by the resource server (RS). The content of the access token is opaque to the client. They can have different formats and utilization methods based on security requirements of the deployment. (RFC 9200 Section 3.1)",
+      "citations": [
+        "RFC 9200 Section 3.1"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"access token OAuth 2.0\",\"k\":3}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9200 Section 3.1\", \"rfc_number\": 9200, \"title\": \"Authentication and Authorization for Constrained Environments Using the OAuth 2.0 Framework (ACE-OAuth)\", \"section\": \"3.1\", \"section_title\": \"OAuth 2.0\", \"is_current\": true, \"text\": \"server.\\n\\nA number of OAuth 2.0 term"
+        }
+      ],
+      "latency_s": 3.77,
+      "usage": {
+        "prompt_tokens": 1850,
+        "completion_tokens": 122,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.000935
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 0.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference by stating that access tokens are credentials representing authorization issued to the client for accessing protected resources and adds compatible implementation details (issuer/consumer, opaque format, variable formats).",
+      "error": null
+    },
+    {
+      "id": "fact-uri-scheme",
+      "type": "factual",
+      "question": "What is the syntax of a URI scheme component?",
+      "answer": "The syntax of a URI scheme component is defined as:\n\nscheme = ALPHA *( ALPHA / DIGIT / \"+\" / \"-\" / \".\" )\n\nThis means the scheme starts with an alphabetic character, followed by any combination of alphanumeric characters, plus (\"+\"), hyphen (\"-\"), or period (\".\").\n\nThis is specified in RFC 3986 Section 3.1.",
+      "citations": [
+        "RFC 3986 Section 3.1"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"URI scheme syntax\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 3986 Section 3.1\", \"rfc_number\": 3986, \"title\": \"Uniform Resource Identifier (URI): Generic Syntax\", \"section\": \"3.1\", \"section_title\": \"Scheme\", \"is_current\": true, \"text\": \"for\\nconsistency.\\n\\n   scheme      = ALPHA *( ALPHA / DIGIT / \\\"+\\\" / \\\"-\\\" / \\\".\\\" )\\n\\nIndi"
+        }
+      ],
+      "latency_s": 3.46,
+      "usage": {
+        "prompt_tokens": 2222,
+        "completion_tokens": 96,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.001042
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "partial",
+      "judge_reason": "The answer gives the correct ABNF and explanation for the syntax but omits the reference\u2019s point that scheme names are case-insensitive.",
+      "error": null
+    },
+    {
+      "id": "fact-uri-percent-encoding",
+      "type": "factual",
+      "question": "How does percent-encoding represent a byte in a URI?",
+      "answer": "Percent-encoding represents a byte in a URI as a character triplet: a percent character \"%\" followed by two hexadecimal digits representing the numeric value of that byte (octet). For example, \"%20\" is the percent-encoding for the byte with the hexadecimal value 20, which corresponds to the space character in US-ASCII. This mechanism is used to represent bytes when their corresponding characters are outside the allowed set or are used as delimiters within a URI component.\n\nCitation: RFC 3986 Section 2.1",
+      "citations": [
+        "RFC 3986 Section 2.1"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"percent-encoding byte representation URI\",\"k\":3}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 3986 Section 2.1\", \"rfc_number\": 3986, \"title\": \"Uniform Resource Identifier (URI): Generic Syntax\", \"section\": \"2.1\", \"section_title\": \"Percent-Encoding\", \"is_current\": true, \"text\": \"A percent-encoding mechanism is used to represent a data octet in a\\ncomponent when "
+        }
+      ],
+      "latency_s": 3.59,
+      "usage": {
+        "prompt_tokens": 1764,
+        "completion_tokens": 132,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.000917
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference by stating a percent-encoded octet is '%' followed by two hexadecimal digits representing the octet's numeric value, with a correct example and usage context.",
+      "error": null
+    },
+    {
+      "id": "fact-uri-unreserved",
+      "type": "factual",
+      "question": "Which characters are unreserved in a URI?",
+      "answer": "The unreserved characters in a URI are uppercase and lowercase letters (ALPHA), decimal digits (DIGIT), hyphen (\"-\"), period (\".\"), underscore (\"_\"), and tilde (\"~\"). These characters are allowed in a URI without being percent-encoded. URIs that differ only in the replacement of an unreserved character with its corresponding percent-encoded form identify the same resource. For consistency, percent-encoded forms of these unreserved characters should not be created by URI producers and should be decoded by URI normalizers when found in a URI (RFC 3986 Section 2.3).",
+      "citations": [
+        "RFC 3986 Section 2.3"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"unreserved characters URI\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 3986 Section 2.2\", \"rfc_number\": 3986, \"title\": \"Uniform Resource Identifier (URI): Generic Syntax\", \"section\": \"2.2\", \"section_title\": \"Reserved Characters\", \"is_current\": true, \"text\": \"are delimited by\\ncharacters in the reserved set allowed within that component.\\n"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":3986,\"section\":\"2.3\"}",
+          "result_preview": "{\"citation\": \"RFC 3986 Section 2.3\", \"rfc_number\": 3986, \"section\": \"2.3\", \"section_title\": \"Unreserved Characters\", \"text\": \"Characters that are allowed in a URI but do not have a reserved\\npurpose are called unreserved.  These include uppercase and lowercase\\nletters, decimal digits, hyphen, perio"
+        }
+      ],
+      "latency_s": 4.75,
+      "usage": {
+        "prompt_tokens": 4638,
+        "completion_tokens": 167,
+        "tool_calls": 2,
+        "rounds": 3,
+        "cost_usd": 0.002122
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer lists the same unreserved characters as the reference (ALPHA, DIGIT, hyphen, period, underscore, tilde) and correctly restates RFC 3986 guidance about percent-encoding equivalence and normalization.",
+      "error": null
+    },
+    {
+      "id": "fact-uri-authority",
+      "type": "factual",
+      "question": "What components make up the authority part of a URI?",
+      "answer": "The authority part of a URI is composed of the following components:\n\n- Optional user information followed by \"@\"\n- Host\n- Optional port preceded by \":\"\n\nFormally, it is expressed as:\nauthority = [ userinfo \"@\" ] host [ \":\" port ]\n\nThe authority component is preceded by a double slash \"//\" and terminated by the next slash \"/\", question mark \"?\", number sign \"#\", or the end of the URI.\n\nAlso, if a URI contains an authority component, the path component must either be empty or begin with a slash \"/\" character.\n\nThis description is from RFC 3986 Section 3.2.",
+      "citations": [
+        "RFC 3986 Section 3.2"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"authority component URI components\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 3986 Section 5.3\", \"rfc_number\": 3986, \"title\": \"Uniform Resource Identifier (URI): Generic Syntax\", \"section\": \"5.3\", \"section_title\": \"Component Recomposition\", \"is_current\": true, \"text\": \"Parsed URI components can be recomposed to obtain the corresponding\\nURI refe"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":3986,\"section\":\"3\"}",
+          "result_preview": "{\"citation\": \"RFC 3986 Section 3\", \"rfc_number\": 3986, \"section\": \"3\", \"section_title\": \"Syntax Components\", \"text\": \"The generic URI syntax consists of a hierarchical sequence of\\ncomponents referred to as the scheme, authority, path, query, and\\nfragment.\\n\\n   URI         = scheme \\\":\\\" hier-part"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"authority component URI\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 3986 Section 5.3\", \"rfc_number\": 3986, \"title\": \"Uniform Resource Identifier (URI): Generic Syntax\", \"section\": \"5.3\", \"section_title\": \"Component Recomposition\", \"is_current\": true, \"text\": \"Parsed URI components can be recomposed to obtain the corresponding\\nURI refe"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":3986,\"section\":\"3.2\"}",
+          "result_preview": "{\"citation\": \"RFC 3986 Section 3.2\", \"rfc_number\": 3986, \"section\": \"3.2\", \"section_title\": \"Authority\", \"text\": \"Many URI schemes include a hierarchical element for a naming\\nauthority so that governance of the name space defined by the\\nremainder of the URI is delegated to that authority (which ma"
+        }
+      ],
+      "latency_s": 8.91,
+      "usage": {
+        "prompt_tokens": 11880,
+        "completion_tokens": 209,
+        "tool_calls": 4,
+        "rounds": 5,
+        "cost_usd": 0.005086
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference (optional userinfo, host, optional port, preceded by \u201c//\u201d) and correctly adds the RFC-accurate ABNF and termination/path constraints.",
+      "error": null
+    },
+    {
+      "id": "fact-dns-size-limits",
+      "type": "factual",
+      "question": "What are the size limits for DNS labels and names?",
+      "answer": "The size limits for DNS labels and names are as follows: \n\n- Each DNS label can be up to 63 octets (bytes) or less.\n- A full DNS domain name can be up to 255 octets (bytes) or less in total length.\n\nThese size limits are specified in RFC 1035 Section 2.3.4. The maximum length of 255 octets for a domain name includes all labels plus label length octets.\n\nCitation: RFC 1035 Section 2.3.4 and Section 3.1.",
+      "citations": [
+        "RFC 1035 Section 2.3.4"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"DNS label size limit\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 1035 Section 2.3.4\", \"rfc_number\": 1035, \"title\": \"Domain names - implementation and specification\", \"section\": \"2.3.4\", \"section_title\": \"Size limits\", \"is_current\": true, \"text\": \"Various objects and parameters in the DNS have size limits.  They are\\nlisted below.  S"
+        }
+      ],
+      "latency_s": 4.38,
+      "usage": {
+        "prompt_tokens": 1996,
+        "completion_tokens": 134,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.001013
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer states the same limits as the reference (labels \u226463 octets, full name \u2264255 octets) and correctly notes the 255-octet total includes label length octets.",
+      "error": null
+    },
+    {
+      "id": "fact-dns-preferred-syntax",
+      "type": "factual",
+      "question": "What is the preferred name syntax for DNS domain names?",
+      "answer": "The preferred name syntax for DNS domain names is as follows:\n\n- A domain is composed of subdomains separated by dots.\n- Each subdomain is a label or a series of labels separated by dots.\n- Labels must start with a letter, end with a letter or digit, and have only letters, digits, or hyphens as interior characters.\n- Labels are restricted to 63 characters or less.\n- Upper and lower case letters are allowed but are not significant (names differing only in case are treated as identical).\n\nThis syntax adheres to the rules for ARPANET host names and results in fewer problems with many applications that use domain names (such as mail and TELNET).\n\nExamples of valid host identifiers are:\n- A.ISI.EDU\n- XX.LCS.MIT.EDU\n- SRI-NIC.ARPA\n\nThis is specified in RFC 1035 Section 2.3.1.",
+      "citations": [
+        "RFC 1035 Section 2.3.1"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"preferred name syntax for DNS domain names\",\"k\":5}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 1035 Section 2.3.1\", \"rfc_number\": 1035, \"title\": \"Domain names - implementation and specification\", \"section\": \"2.3.1\", \"section_title\": \"Preferred name syntax\", \"is_current\": true, \"text\": \"The DNS specifications attempt to be as general as possible in the rules\\nfor"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":1035,\"section\":\"2.3.1\"}",
+          "result_preview": "{\"citation\": \"RFC 1035 Section 2.3.1\", \"rfc_number\": 1035, \"section\": \"2.3.1\", \"section_title\": \"Preferred name syntax\", \"text\": \"The DNS specifications attempt to be as general as possible in the rules\\nfor constructing domain names.  The idea is that the name of any\\nexisting object can be express"
+        }
+      ],
+      "latency_s": 6.26,
+      "usage": {
+        "prompt_tokens": 4656,
+        "completion_tokens": 240,
+        "tool_calls": 2,
+        "rounds": 3,
+        "cost_usd": 0.002246
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer states the same preferred label syntax as the reference (start with a letter, end with a letter or digit, interior only letters/digits/hyphens) and adds accurate, permissible details (label length limit, case-insensitivity and dot-separated labels).",
+      "error": null
+    },
+    {
+      "id": "fact-doh-media-type",
+      "type": "factual",
+      "question": "What media type does DNS over HTTPS use for its messages?",
+      "answer": "The tools did not return a direct specification of the media type used for DNS over HTTPS (DoH) messages in RFC 8484 or other referenced RFCs. Therefore, I do not have enough information to answer what media type DoH uses for its messages.",
+      "citations": [
+        "RFC 8484"
+      ],
+      "refused": false,
+      "hit_limit": true,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"DNS over HTTPS media type\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9458 Section 6.9\", \"rfc_number\": 9458, \"title\": \"Oblivious HTTP\", \"section\": \"6.9\", \"section_title\": \"Media Type Security\", \"is_current\": true, \"text\": \"media types are also encrypted\\nencapsulations of HTTP requests and responses.\\n\\nHTTP messages contain content, whi"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":8484,\"section\":\"7.1\"}",
+          "result_preview": "{\"error\": \"RFC 8484 has no indexed section 7.1\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"media type\",\"rfc_number\":8484}",
+          "result_preview": "{\"results\": []}"
+        },
+        {
+          "tool": "get_rfc_metadata",
+          "arguments": "{\"rfc_number\":8484}",
+          "result_preview": "{\"rfc_number\": 8484, \"title\": \"DNS Queries over HTTPS (DoH)\", \"year\": 2018, \"status\": \"PROPOSED STANDARD\", \"abstract\": \"This document defines a protocol for sending DNS queries and getting DNS responses over HTTPS.  Each DNS query-response pair is mapped into an HTTP exchange.\", \"is_current\": true, "
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"Content-Type\",\"rfc_number\":8484}",
+          "result_preview": "{\"results\": []}"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"media type\",\"current_only\":true,\"k\":2,\"rfc_number\":8484}",
+          "result_preview": "{\"results\": []}"
+        }
+      ],
+      "latency_s": 11.69,
+      "usage": {
+        "prompt_tokens": 11214,
+        "completion_tokens": 199,
+        "tool_calls": 6,
+        "rounds": 6,
+        "cost_usd": 0.004804
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 0.0,
+      "verdict": "incorrect",
+      "judge_reason": "The reference states the media type is application/dns-message, but the answer claims there is no direct specification and lacks that information.",
+      "error": null
+    },
+    {
+      "id": "fact-websocket-close-frame",
+      "type": "factual",
+      "question": "What is the purpose of the WebSocket Close frame?",
+      "answer": "The search did not return a relevant passage from the WebSocket RFC 6455 or any other RFC about the purpose of the WebSocket Close frame. Therefore, I do not have enough information to answer your question based on the RFC documents available through the tools.",
+      "citations": [
+        "RFC 6455"
+      ],
+      "refused": false,
+      "hit_limit": true,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"WebSocket Close frame purpose\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9000 Section 10.2.3\", \"rfc_number\": 9000, \"title\": \"QUIC: A UDP-Based Multiplexed and Secure Transport\", \"section\": \"10.2.3\", \"section_title\": \"Immediate Close during the Handshake\", \"is_current\": true, \"text\": \"When sending a CONNECTION_CLOSE frame, the goal is to ens"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"WebSocket Close frame purpose\",\"rfc_number\":6455,\"normative_only\":true}",
+          "result_preview": "{\"results\": []}"
+        },
+        {
+          "tool": "resolve_current_spec",
+          "arguments": "{\"rfc_number\":6455}",
+          "result_preview": "{\"requested\": 6455, \"current\": 6455, \"is_current\": true, \"chain\": [{\"rfc_number\": 6455, \"title\": \"The WebSocket Protocol\", \"status\": \"PROPOSED STANDARD\"}], \"split_across\": null}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":6455,\"section\":\"5.5.1\"}",
+          "result_preview": "{\"error\": \"RFC 6455 has no indexed section 5.5.1\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":6455,\"section\":\"5.5\"}",
+          "result_preview": "{\"error\": \"RFC 6455 has no indexed section 5.5\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"Close frame\",\"rfc_number\":6455}",
+          "result_preview": "{\"results\": []}"
+        }
+      ],
+      "latency_s": 10.42,
+      "usage": {
+        "prompt_tokens": 10421,
+        "completion_tokens": 199,
+        "tool_calls": 6,
+        "rounds": 6,
+        "cost_usd": 0.004487
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 0.0,
+      "verdict": "incorrect",
+      "judge_reason": "The reference states the Close frame's opcode (0x8), that it may carry a status code and reason, and that it begins the closing handshake, but the answer incorrectly claims lack of RFC information.",
+      "error": null
+    },
+    {
+      "id": "fact-tcp-header-format",
+      "type": "factual",
+      "question": "What fields does the TCP header contain?",
+      "answer": "The TCP header contains the following fields:\n\n- Source Port (16 bits): The source port number.\n- Destination Port (16 bits): The destination port number.\n- Sequence Number (32 bits): The sequence number of the first data octet in the segment (or the initial sequence number if SYN is set).\n- Acknowledgment Number (32 bits): If the ACK bit is set, this is the next sequence number the sender expects to receive.\n- Data Offset (4 bits): The number of 32-bit words in the TCP header.\n- Reserved (4 bits): Reserved for future use; must be zero and ignored if unused.\n- Control bits (flags, 8 bits): CWR, ECE, URG, ACK, PSH, RST, SYN, and FIN.\n- Window (16 bits): The window size indicating how many data octets the sender is willing to accept.\n- Checksum (16 bits): Used for error-checking of the header and data.\n- Urgent Pointer (16 bits): Points to urgent data if the URG flag is set.\n- Options (variable length): Optional fields following the main header.\n- Data (variable length): The actual payload data.\n\nThis description is from RFC 9293 Section 3.1.",
+      "citations": [
+        "RFC 9293 Section 3.1"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"TCP header fields\",\"k\":3}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9293 Section 3.1\", \"rfc_number\": 9293, \"title\": \"Transmission Control Protocol (TCP)\", \"section\": \"3.1\", \"section_title\": \"Header Format\", \"is_current\": true, \"text\": \"user data in the segment, is formatted\\nas follows, using the style from [66]:\\n\\n    0              "
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":9293,\"section\":\"3.1\"}",
+          "result_preview": "{\"citation\": \"RFC 9293 Section 3.1\", \"rfc_number\": 9293, \"section\": \"3.1\", \"section_title\": \"Header Format\", \"text\": \"TCP segments are sent as internet datagrams.  The Internet Protocol\\n(IP) header carries several information fields, including the source\\nand destination host addresses [1] [13].  A"
+        }
+      ],
+      "latency_s": 6.85,
+      "usage": {
+        "prompt_tokens": 4445,
+        "completion_tokens": 306,
+        "tool_calls": 2,
+        "rounds": 3,
+        "cost_usd": 0.002268
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer includes all fields listed in the reference (source/destination ports; sequence and acknowledgment numbers; data offset; control bits; window; checksum; urgent pointer) and correctly adds accurate TCP header details (reserved, options, flags).",
+      "error": null
+    },
+    {
+      "id": "fact-tls13-negotiation",
+      "type": "factual",
+      "question": "How does a TLS 1.3 client offer cryptographic options?",
+      "answer": "A TLS 1.3 client offers cryptographic options in its ClientHello message by sending the following sets of options:\n\n1. A list of cipher suites indicating the AEAD algorithm/HKDF hash pairs it supports.\n2. A \"supported_groups\" extension indicating supported key exchange groups, and a \"key_share\" extension containing key exchange shares for some or all of these groups.\n3. A \"signature_algorithms\" extension indicating acceptable signature algorithms; optionally also a \"signature_algorithms_cert\" extension for certificate-specific signature algorithms.\n4. A \"pre_shared_key\" extension listing symmetric key identities known to the client, and a \"psk_key_exchange_modes\" extension indicating key exchange modes that may be used with PSKs.\n\nThe server independently selects parameters from these offered options to negotiate the connection. If no overlap in parameters exists, the handshake aborts with an error. If the server needs a compatible key share that wasn't offered initially, it sends a HelloRetryRequest.\n\nThis is detailed in RFC 9846 Section 4.2.1.",
+      "citations": [
+        "RFC 9846 Section 4.2.1"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"TLS 1.3 client cryptographic options offer\",\"normative_only\":true}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9846 Section 4.2.1\", \"rfc_number\": 9846, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.3\", \"section\": \"4.2.1\", \"section_title\": \"Cryptographic Negotiation\", \"is_current\": true, \"text\": \"In TLS, the cryptographic negotiation proceeds by the client offe"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":9846,\"section\":\"4.2.1\"}",
+          "result_preview": "{\"citation\": \"RFC 9846 Section 4.2.1\", \"rfc_number\": 9846, \"section\": \"4.2.1\", \"section_title\": \"Cryptographic Negotiation\", \"text\": \"In TLS, the cryptographic negotiation proceeds by the client offering\\nthe following four sets of options in its ClientHello:\\n\\n*  A list of cipher suites which indi"
+        }
+      ],
+      "latency_s": 7.0,
+      "usage": {
+        "prompt_tokens": 5634,
+        "completion_tokens": 271,
+        "tool_calls": 2,
+        "rounds": 3,
+        "cost_usd": 0.002687
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer includes the list of cipher suites, supported_groups/key_share, and signature algorithms as in the reference and adds compatible, non-contradictory TLS 1.3 details (PSK, HelloRetryRequest) that are consistent with the specification.",
+      "error": null
+    },
+    {
+      "id": "norm-should-definition",
+      "type": "normative",
+      "question": "What does SHOULD mean, and when may an implementation ignore it?",
+      "answer": "The word \"SHOULD\" means that there may exist valid reasons in particular circumstances to ignore the item, but the full implications should be understood and the case carefully weighed before choosing a different course. Thus, an implementation may ignore a \"SHOULD\" requirement if there are valid reasons and the implications are carefully considered.\n\nThis definition is given in RFC 2119 and also reflected in other RFCs such as RFC 2131 and RFC 1661, stating the same understanding about the \"SHOULD\" keyword meaning and when it may be ignored.\n\nCitations:\n- RFC 2119 Section 2 (defined in BCP 14)\n- RFC 2131 Section 1.4\n- RFC 1661 Section 1.1",
+      "citations": [
+        "RFC 2119",
+        "RFC 2131",
+        "RFC 1661",
+        "RFC 2119 Section 2",
+        "RFC 2131 Section 1.4",
+        "RFC 1661 Section 1.1"
+      ],
+      "refused": false,
+      "hit_limit": true,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"SHOULD meaning when may an implementation ignore it\",\"normative_only\":true}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 7696 Section 2.2.3\", \"rfc_number\": 7696, \"title\": \"Guidelines for Cryptographic Algorithm Agility and Selecting Mandatory-to-Implement Algorithms\", \"section\": \"2.2.3\", \"section_title\": \"Providing Notice of Expected Changes\", \"is_current\": true, \"text\": \"marked as SHOUL"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":2119,\"section\":\"2\"}",
+          "result_preview": "{\"citation\": \"RFC 2119 Section 2\", \"rfc_number\": 2119, \"section\": \"2\", \"section_title\": \"MUST NOT   This phrase, or the phrase \\\"SHALL NOT\\\", mean that the\", \"text\": \"definition is an absolute prohibition of the specification.\", \"truncated\": false}"
+        },
+        {
+          "tool": "get_rfc_metadata",
+          "arguments": "{\"rfc_number\":2119}",
+          "result_preview": "{\"rfc_number\": 2119, \"title\": \"Key words for use in RFCs to Indicate Requirement Levels\", \"year\": 1997, \"status\": \"BEST CURRENT PRACTICE\", \"abstract\": \"In many standards track documents several words are used to signify the requirements in the specification.  These words are often capitalized.  This"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":8174,\"section\":\"2.1\"}",
+          "result_preview": "{\"error\": \"RFC 8174 has no indexed section 2.1\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":8174,\"section\":\"2\"}",
+          "result_preview": "{\"citation\": \"RFC 8174 Section 2\", \"rfc_number\": 8174, \"section\": \"2\", \"section_title\": \"Clarifying Capitalization of Key Words\", \"text\": \"The following change is made to [RFC2119]:\\n\\n=== OLD ===\\nIn many standards track documents several words are used to signify\\nthe requirements in the specifica"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"SHOULD definition RFC 2119\",\"normative_only\":true}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 2390 Section 3\", \"rfc_number\": 2390, \"title\": \"Inverse Address Resolution Protocol\", \"section\": \"3\", \"section_title\": \"Conventions\", \"is_current\": true, \"text\": \"The keywords MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD,\\nSHOULD NOT, RECOMMENDED, MAY, and OPTIONA"
+        }
+      ],
+      "latency_s": 10.19,
+      "usage": {
+        "prompt_tokens": 13869,
+        "completion_tokens": 302,
+        "tool_calls": 6,
+        "rounds": 6,
+        "cost_usd": 0.006031
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference by stating that 'SHOULD' allows valid exceptions in particular circumstances provided the full implications are understood and carefully weighed, so an implementation may ignore it when such valid reasons exist and have been considered.",
+      "error": null
+    },
+    {
+      "id": "norm-must-not-definition",
+      "type": "normative",
+      "question": "What does MUST NOT mean in an IETF specification?",
+      "answer": "In an IETF specification, \"MUST NOT\" (or \"SHALL NOT\") means an absolute prohibition of the specification. In other words, it indicates something that is absolutely disallowed. This is according to RFC 2119 Section 2.",
+      "citations": [
+        "RFC 2119 Section 2"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"MUST NOT\",\"k\":3}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 2119 Section 2\", \"rfc_number\": 2119, \"title\": \"Key words for use in RFCs to Indicate Requirement Levels\", \"section\": \"2\", \"section_title\": \"MUST NOT   This phrase, or the phrase \\\"SHALL NOT\\\", mean that the\", \"is_current\": true, \"text\": \"definition is an absolute prohi"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":2119,\"section\":\"2\"}",
+          "result_preview": "{\"citation\": \"RFC 2119 Section 2\", \"rfc_number\": 2119, \"section\": \"2\", \"section_title\": \"MUST NOT   This phrase, or the phrase \\\"SHALL NOT\\\", mean that the\", \"text\": \"definition is an absolute prohibition of the specification.\", \"truncated\": false}"
+        }
+      ],
+      "latency_s": 4.24,
+      "usage": {
+        "prompt_tokens": 2712,
+        "completion_tokens": 97,
+        "tool_calls": 2,
+        "rounds": 3,
+        "cost_usd": 0.00124
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer restates the reference verbatim \u2014 that MUST NOT/SHALL NOT is an absolute prohibition \u2014 and correctly cites RFC 2119.",
+      "error": null
+    },
+    {
+      "id": "norm-should-not-definition",
+      "type": "normative",
+      "question": "What does SHOULD NOT mean in an RFC?",
+      "answer": "The phrase \"SHOULD NOT\" in an RFC means that there may exist valid reasons in particular circumstances when the listed behavior is acceptable or even useful, but the full implications should be understood and the case carefully weighed before implementing any behavior described with this label. In other words, it is generally advised against except for special cases where the behavior might be justified.\n\nThis is from RFC 2131 Section 1.4.",
+      "citations": [
+        "RFC 2131 Section 1.4"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"SHOULD NOT\",\"normative_only\":true,\"k\":5}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 2131 Section 1.4\", \"rfc_number\": 2131, \"title\": \"Dynamic Host Configuration Protocol\", \"section\": \"1.4\", \"section_title\": \"Requirements\", \"is_current\": true, \"text\": \"case carefully weighed before choosing a different course.\\n\\n   o \\\"SHOULD NOT\\\"\\n\\n     This phrase "
+        }
+      ],
+      "latency_s": 3.86,
+      "usage": {
+        "prompt_tokens": 1933,
+        "completion_tokens": 116,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.000959
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer accurately restates the reference definition that 'SHOULD NOT' allows exceptional cases but advises against the behavior unless carefully justified.",
+      "error": null
+    },
+    {
+      "id": "norm-2119-uppercase",
+      "type": "normative",
+      "question": "When do RFC 2119 keywords carry their special normative meaning?",
+      "answer": "RFC 2119 keywords carry their special normative meaning when they appear in all capitals in the text. For example, \"MUST\", \"MUST NOT\", \"REQUIRED\", \"SHALL\", and \"SHALL NOT\" indicate absolute requirements or prohibitions in the specification. This special meaning applies only when these words are capitalized as shown (in all capitals). The indication is that these keywords specify requirements or prohibitions that are absolute according to the specification language in RFC 2119. \n\nThis is supported by the explanation in RFC 9017 Section 1.1 and the definitions in RFC 2119 Sections 1 and 2.\n\nRFC 9017 Section 1.1: The key words \"MUST\", \"MUST NOT\", \"REQUIRED\", \"SHALL\", \"SHALL NOT\", \"SHOULD\", \"SHOULD NOT\", \"RECOMMENDED\", \"NOT RECOMMENDED\", \"MAY\", and \"OPTIONAL\" are to be interpreted as described in BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all capitals.\n\nRFC 2119 Section 1 and 2: \"MUST\", \"REQUIRED\", and \"SHALL\" mean that the definition is an absolute requirement of the specification. \"MUST NOT\" and \"SHALL NOT\" mean that the definition is an absolute prohibition of the specification.\n\nThus, the special normative meaning applies when these keywords are used in uppercase as norms in the specification text.\n\nCitations: RFC 9017 Section 1.1, RFC 2119 Sections 1 and 2",
+      "citations": [
+        "RFC 2119",
+        "RFC 9017 Section 1.1",
+        "RFC2119",
+        "RFC8174",
+        "RFC 2119 Section 1"
+      ],
+      "refused": false,
+      "hit_limit": true,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"RFC 2119 keywords special normative meaning\",\"k\":5}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9017 Section 1.1\", \"rfc_number\": 9017, \"title\": \"Special-Purpose Label Terminology\", \"section\": \"1.1\", \"section_title\": \"Terminology\", \"is_current\": true, \"text\": \"The key words \\\"MUST\\\", \\\"MUST NOT\\\", \\\"REQUIRED\\\", \\\"SHALL\\\", \\\"SHALL NOT\\\",\\n\\\"SHOULD\\\", \\\"SHOULD NOT\\\""
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":2119,\"section\":\"2.1\"}",
+          "result_preview": "{\"error\": \"RFC 2119 has no indexed section 2.1\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":2119,\"section\":\"2\"}",
+          "result_preview": "{\"citation\": \"RFC 2119 Section 2\", \"rfc_number\": 2119, \"section\": \"2\", \"section_title\": \"MUST NOT   This phrase, or the phrase \\\"SHALL NOT\\\", mean that the\", \"text\": \"definition is an absolute prohibition of the specification.\", \"truncated\": false}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":2119,\"section\":\"1\"}",
+          "result_preview": "{\"citation\": \"RFC 2119 Section 1\", \"rfc_number\": 2119, \"section\": \"1\", \"section_title\": \"MUST   This word, or the terms \\\"REQUIRED\\\" or \\\"SHALL\\\", mean that the\", \"text\": \"definition is an absolute requirement of the specification.\", \"truncated\": false}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":2119,\"section\":\"1\"}",
+          "result_preview": "{\"citation\": \"RFC 2119 Section 1\", \"rfc_number\": 2119, \"section\": \"1\", \"section_title\": \"MUST   This word, or the terms \\\"REQUIRED\\\" or \\\"SHALL\\\", mean that the\", \"text\": \"definition is an absolute requirement of the specification.\", \"truncated\": false}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":2119,\"section\":\"2\"}",
+          "result_preview": "{\"citation\": \"RFC 2119 Section 2\", \"rfc_number\": 2119, \"section\": \"2\", \"section_title\": \"MUST NOT   This phrase, or the phrase \\\"SHALL NOT\\\", mean that the\", \"text\": \"definition is an absolute prohibition of the specification.\", \"truncated\": false}"
+        }
+      ],
+      "latency_s": 12.38,
+      "usage": {
+        "prompt_tokens": 13971,
+        "completion_tokens": 473,
+        "tool_calls": 6,
+        "rounds": 6,
+        "cost_usd": 0.006345
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer correctly states that RFC 2119 keywords have their special normative meaning only when written in all capitals, matching the reference (the omission of an explicit mention of RFC 8174\u2019s note about lowercase usage does not contradict the reference).",
+      "error": null
+    },
+    {
+      "id": "norm-websocket-masking",
+      "type": "normative",
+      "question": "Must a WebSocket client mask the frames it sends to the server?",
+      "answer": "The search did not return any relevant excerpt directly answering whether a WebSocket client must mask frames it sends to the server from RFC 6455 or any newer normative document. The RFC 6455 is current and not obsoleted, but the specific detail about masking frames by the client was not extracted by the tools.\n\nTherefore, based on the provided tools and returned data, there is not enough information to definitively answer this question.",
+      "citations": [
+        "RFC 6455"
+      ],
+      "refused": true,
+      "hit_limit": true,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"WebSocket client mask frames to server\",\"normative_only\":true}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9605\", \"rfc_number\": 9605, \"title\": \"Secure Frame (SFrame): Lightweight Authenticated Encryption for Real-Time Media\", \"section\": null, \"section_title\": \"Alice |          (per frame)         (per packet)   |        |       |\", \"is_current\": true, \"text\": \"      |      "
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"WebSocket client mask frames\",\"normative_only\":true,\"current_only\":true,\"k\":3}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9605\", \"rfc_number\": 9605, \"title\": \"Secure Frame (SFrame): Lightweight Authenticated Encryption for Real-Time Media\", \"section\": null, \"section_title\": \"Alice |          (per frame)         (per packet)   |        |       |\", \"is_current\": true, \"text\": \"      |      "
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"WebSocket client mask frames\",\"normative_only\":true,\"current_only\":true,\"rfc_number\":6455}",
+          "result_preview": "{\"results\": []}"
+        },
+        {
+          "tool": "resolve_current_spec",
+          "arguments": "{\"rfc_number\":6455}",
+          "result_preview": "{\"requested\": 6455, \"current\": 6455, \"is_current\": true, \"chain\": [{\"rfc_number\": 6455, \"title\": \"The WebSocket Protocol\", \"status\": \"PROPOSED STANDARD\"}], \"split_across\": null}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":6455,\"section\":\"5.3\"}",
+          "result_preview": "{\"error\": \"RFC 6455 has no indexed section 5.3\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":6455,\"section\":\"5.3 Frame Format\"}",
+          "result_preview": "{\"error\": \"RFC 6455 has no indexed section 5.3 Frame Format\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        }
+      ],
+      "latency_s": 12.56,
+      "usage": {
+        "prompt_tokens": 15950,
+        "completion_tokens": 258,
+        "tool_calls": 6,
+        "rounds": 6,
+        "cost_usd": 0.006793
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "incorrect",
+      "judge_reason": "The reference states clearly that a client MUST mask all frames it sends (using a fresh masking key per frame); the answer instead declines to state this requirement, so it is incorrect.",
+      "error": null
+    },
+    {
+      "id": "norm-websocket-server-no-mask",
+      "type": "normative",
+      "question": "Is a WebSocket server allowed to mask the frames it sends?",
+      "answer": "The tools did not return any explicit information from RFC 6455 or its updates about whether a WebSocket server is allowed to mask the frames it sends. Therefore, I do not have sufficient information to answer your question definitively.",
+      "citations": [
+        "RFC 6455"
+      ],
+      "refused": false,
+      "hit_limit": true,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"WebSocket server frame masking\",\"normative_only\":true,\"current_only\":true}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9605\", \"rfc_number\": 9605, \"title\": \"Secure Frame (SFrame): Lightweight Authenticated Encryption for Real-Time Media\", \"section\": null, \"section_title\": \"Alice |          (per frame)         (per packet)   |        |       |\", \"is_current\": true, \"text\": \"      |      "
+        },
+        {
+          "tool": "get_rfc_metadata",
+          "arguments": "{\"rfc_number\":6455}",
+          "result_preview": "{\"rfc_number\": 6455, \"title\": \"The WebSocket Protocol\", \"year\": 2011, \"status\": \"PROPOSED STANDARD\", \"abstract\": \"The WebSocket Protocol enables two-way communication between a client running untrusted code in a controlled environment to a remote host that has opted-in to communications from that co"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":6455,\"section\":\"5.3\"}",
+          "result_preview": "{\"error\": \"RFC 6455 has no indexed section 5.3\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"masking frames server site\",\"rfc_number\":6455}",
+          "result_preview": "{\"results\": []}"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"masking frames server\",\"rfc_number\":6455}",
+          "result_preview": "{\"results\": []}"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"masking frames server\",\"current_only\":false,\"rfc_number\":6455}",
+          "result_preview": "{\"results\": []}"
+        }
+      ],
+      "latency_s": 9.04,
+      "usage": {
+        "prompt_tokens": 13076,
+        "completion_tokens": 206,
+        "tool_calls": 6,
+        "rounds": 6,
+        "cost_usd": 0.00556
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 0.0,
+      "verdict": "incorrect",
+      "judge_reason": "The reference clearly states servers MUST NOT mask frames they send, but the answer claims insufficient information and thus fails to state the RFC requirement.",
+      "error": null
+    },
+    {
+      "id": "norm-http-host-required",
+      "type": "normative",
+      "question": "What must a client do about the Host header field when sending an HTTP/1.1 request?",
+      "answer": "A client MUST send a Host header field in all HTTP/1.1 request messages. If the target URI includes an authority component, the client MUST send a Host value identical to that authority component, excluding any userinfo subcomponent and its \"@\" delimiter. If the authority component is missing or undefined, the client MUST send a Host header field with an empty value. Additionally, a client MUST send a Host header field even if the request-target is in the absolute-form. \n\nIf these conditions are not met, a server MUST respond with a 400 (Bad Request) status code.\n\nThis is specified in RFC 9112 Section 3.2.",
+      "citations": [
+        "RFC 9112 Section 3.2"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"HTTP/1.1 Host header client requirements\",\"normative_only\":true}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9112 Section 3.2\", \"rfc_number\": 9112, \"title\": \"HTTP/1.1\", \"section\": \"3.2\", \"section_title\": \"Request Target\", \"is_current\": true, \"text\": \"be deliberately crafted to bypass\\nsecurity filters along the request chain.\\n\\nA client MUST send a Host header field (Section"
+        }
+      ],
+      "latency_s": 4.36,
+      "usage": {
+        "prompt_tokens": 2474,
+        "completion_tokens": 164,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.001252
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer states the required Host header presence and that its value must match the target URI authority (with userinfo excluded), covers the empty-authority case and absolute-form, and notes the 400 response\u2014consistent with the reference.",
+      "error": null
+    },
+    {
+      "id": "norm-http-server-reject-missing-host",
+      "type": "normative",
+      "question": "How must a server respond to an HTTP/1.1 request that lacks a Host header?",
+      "answer": "A server must respond with a 400 (Bad Request) status code to any HTTP/1.1 request message that lacks a Host header field. This is a strict requirement for HTTP/1.1 requests. The server must also respond with a 400 status code if the request contains more than one Host header field line or a Host header field with an invalid field value.\n\nThis is specified in RFC 9112 Section 3.2: \"A server MUST respond with a 400 (Bad Request) status code to any HTTP/1.1 request message that lacks a Host header field and to any request message that contains more than one Host header field line or a Host header field with an invalid field value.\"",
+      "citations": [
+        "RFC 9112 Section 3.2"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"HTTP/1.1 request without Host header server response\",\"normative_only\":true}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9112 Section 3.2\", \"rfc_number\": 9112, \"title\": \"HTTP/1.1\", \"section\": \"3.2\", \"section_title\": \"Request Target\", \"is_current\": true, \"text\": \"be deliberately crafted to bypass\\nsecurity filters along the request chain.\\n\\nA client MUST send a Host header field (Section"
+        }
+      ],
+      "latency_s": 5.21,
+      "usage": {
+        "prompt_tokens": 2444,
+        "completion_tokens": 179,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.001264
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 0.5,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference: it correctly states the server MUST return 400 for HTTP/1.1 requests missing a Host header and also correctly notes the same requirement applies to multiple Host header lines or an invalid Host field value.",
+      "error": null
+    },
+    {
+      "id": "norm-cache-must-not-store",
+      "type": "normative",
+      "question": "When must a cache not store a response?",
+      "answer": "A cache must not store a response unless all these conditions are met:\n- The request method is understood by the cache.\n- The response status code is a final status code.\n- If the response status code is 206 or 304, or if the must-understand cache directive is present, the cache understands the response status code.\n- The no-store cache directive is not present in the response.\n- If the cache is shared, the private response directive is either not present or allows a shared cache to store a modified response.\n\nAdditionally, the \"no-store\" cache directive explicitly indicates that a cache must not store any part of either the immediate request or the response, and must not use the response to satisfy any other request. This applies to both private and shared caches and means the cache must not intentionally store the information in non-volatile storage and must attempt to remove it promptly from volatile storage.\n\nThese rules come from RFC 9111 Section 3 and Sections 5.2.2.5 and 5.2.2.7. The no-store directive details are also in Sections 5.2.2.5 and 5.2.1.5 of the same RFC. \n\nCitations: RFC 9111 Sections 3, 5.2.2.5, 5.2.1.5",
+      "citations": [
+        "RFC 9111 Section 3",
+        "RFC 9111"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"cache must not store response\",\"normative_only\":true,\"k\":5}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9111 Section 3\", \"rfc_number\": 9111, \"title\": \"HTTP Caching\", \"section\": \"3\", \"section_title\": \"Storing Responses in Caches\", \"is_current\": true, \"text\": \"A cache MUST NOT store a response to a request unless:\\n\\n*  the request method is understood by the cache;\\n\\n*  "
+        }
+      ],
+      "latency_s": 5.59,
+      "usage": {
+        "prompt_tokens": 2121,
+        "completion_tokens": 303,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.001333
+      },
+      "grounded": true,
+      "citation_precision": 0.5,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "incorrect",
+      "judge_reason": "While it includes some correct conditions (method understood, final status, no-store absent), it invents a nonexistent 'must-understand' cache directive and misstates how the 'private' directive affects shared caches, contradicting the RFC.",
+      "error": null
+    },
+    {
+      "id": "norm-cache-no-store",
+      "type": "normative",
+      "question": "What does the no-store cache directive require?",
+      "answer": "The no-store cache directive requires that a cache MUST NOT store any part of either the request or the response. This applies to both private and shared caches. \"MUST NOT store\" means the cache MUST NOT intentionally store the information in non-volatile storage and MUST make a best-effort attempt to remove the information from volatile storage as promptly as possible after forwarding it.\n\nThere are two relevant contexts:\n- The no-store request directive indicates that a cache must not store any part of the request or any response to it.\n- The no-store response directive states that a cache must not store any part of either the immediate request or the response and must not use the response to satisfy any other request.\n\nThis directive is not a reliable or sufficient mechanism for ensuring privacy because malicious or compromised caches might not obey it, and communications networks might be vulnerable to eavesdropping.\n\nThis is specified in RFC 9111 Section 5.2.1.5 and Section 5.2.2.5.",
+      "citations": [
+        "RFC 9111 Section 5.2.1.5"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"no-store cache directive\",\"normative_only\":true}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9111 Section 5.2.1.5\", \"rfc_number\": 9111, \"title\": \"HTTP Caching\", \"section\": \"5.2.1.5\", \"section_title\": \"no-store\", \"is_current\": true, \"text\": \"The no-store request directive indicates that a cache MUST NOT store\\nany part of either this request or any response to "
+        }
+      ],
+      "latency_s": 5.2,
+      "usage": {
+        "prompt_tokens": 2527,
+        "completion_tokens": 228,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.001376
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 0.5,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer restates the reference (caches MUST NOT store any part of request or response) and adds compatible, accurate detail about private/shared caches, request/response contexts, and best-effort removal and non-use for satisfying other requests, matching the RFC.",
+      "error": null
+    },
+    {
+      "id": "norm-cache-heuristic-freshness",
+      "type": "normative",
+      "question": "When may a cache calculate heuristic freshness?",
+      "answer": "A cache may calculate heuristic freshness when an explicit expiration time is not specified in the stored response. It can assign a heuristic expiration time using algorithms that estimate a plausible expiration time based on other field values like the Last-Modified time. However, heuristics must not be used if an explicit expiration time is present. Heuristics can only be used on responses that do not have explicit freshness and whose status codes are defined as \"heuristically cacheable,\" or on responses without explicit freshness that have been marked as explicitly cacheable (e.g., with a public response directive). If the response has a Last-Modified header, caches are encouraged to use a heuristic expiration value that is no more than some fraction (a typical setting is 10%) of the interval since that time.\n\nThis is specified in RFC 9111 Section 4.2.2.",
+      "citations": [
+        "RFC 9111 Section 4.2.2"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"heuristic freshness cache\",\"normative_only\":true}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9111 Section 4.2.2\", \"rfc_number\": 9111, \"title\": \"HTTP Caching\", \"section\": \"4.2.2\", \"section_title\": \"Calculating Heuristic Freshness\", \"is_current\": true, \"text\": \"algorithms, but\\nit does impose worst-case constraints on their results.\\n\\nA cache MUST NOT use heuri"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":9111,\"section\":\"4.2.2\"}",
+          "result_preview": "{\"citation\": \"RFC 9111 Section 4.2.2\", \"rfc_number\": 9111, \"section\": \"4.2.2\", \"section_title\": \"Calculating Heuristic Freshness\", \"text\": \"Since origin servers do not always provide explicit expiration times,\\na cache MAY assign a heuristic expiration time when an explicit time\\nis not specified, e"
+        }
+      ],
+      "latency_s": 5.61,
+      "usage": {
+        "prompt_tokens": 4464,
+        "completion_tokens": 224,
+        "tool_calls": 2,
+        "rounds": 3,
+        "cost_usd": 0.002144
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "incorrect",
+      "judge_reason": "The answer mostly matches that heuristics are allowed only when no explicit expiration exists, but it adds an unsupported allowance (that responses marked 'public' or explicitly cacheable can get heuristics) and extra details not stated in the reference, which contradicts the provided guidance.",
+      "error": null
+    },
+    {
+      "id": "norm-tls13-downgrade",
+      "type": "normative",
+      "question": "What must a TLS 1.3 client do if it detects the downgrade sentinel in ServerHello random?",
+      "answer": "If a TLS 1.3 client detects the downgrade sentinel in the ServerHello random (special values set in the last 8 bytes to signal a downgrade to TLS 1.2 or below), the client uses this as downgrade protection. However, the exact required client behavior upon detecting this downgrade sentinel is not fully detailed in the provided sections. The downgrade sentinel is a mechanism to detect possible downgrade attacks, but the RFC does not explicitly specify the client's action beyond detection in the excerpts available.\n\nTherefore, based on the information retrieved, the client must check the ServerHello random for the downgrade sentinel as a protection measure, but the RFC text provided does not explicitly state the mandatory action the client must take if this sentinel is detected.\n\nFor the most precise, definitive directive, the RFC 9846 Section 4.2.3 discusses downgrade sentinels but does not explicitly command a termination or other action upon detection by a client. More detail in this respect is not available from the tools. \n\nHence, there is not enough information in the retrieved RFC sections to answer what exactly a TLS 1.3 client must do if it detects the downgrade sentinel in ServerHello random.\n\nCitation: RFC 9846 Section 4.2.3",
+      "citations": [
+        "RFC 9846 Section 4.2.3"
+      ],
+      "refused": true,
+      "hit_limit": true,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"TLS 1.3 downgrade sentinel ServerHello random\",\"normative_only\":true}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9846 Section 4.2.3\", \"rfc_number\": 9846, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.3\", \"section\": \"4.2.3\", \"section_title\": \"Server Hello\", \"is_current\": true, \"text\": \"but with Random set to the special value of the\\nSHA-256 of \\\"HelloRetryReques"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":9846,\"section\":\"4.1.3\"}",
+          "result_preview": "{\"error\": \"RFC 9846 has no indexed section 4.1.3\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"TLS 1.3 downgrade sentinel ServerHello random MUST\",\"rfc_number\":8446}",
+          "result_preview": "{\"results\": []}"
+        },
+        {
+          "tool": "resolve_current_spec",
+          "arguments": "{\"rfc_number\":8446}",
+          "result_preview": "{\"requested\": 8446, \"current\": 9846, \"is_current\": false, \"chain\": [{\"rfc_number\": 8446, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.3\", \"status\": \"PROPOSED STANDARD\"}, {\"rfc_number\": 9846, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.3\", \"status\": \"PROPOSED ST"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":9846,\"section\":\"4.1.3\"}",
+          "result_preview": "{\"error\": \"RFC 9846 has no indexed section 4.1.3\", \"hint\": \"Use search_rfcs, or check the section number with get_rfc_metadata.\"}"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"downgrade sentinel\",\"rfc_number\":9846}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9846 Section 4.2.3\", \"rfc_number\": 9846, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.3\", \"section\": \"4.2.3\", \"section_title\": \"Server Hello\", \"is_current\": true, \"text\": \"are\\nused.  It does not provide downgrade protection when static RSA is\\nused."
+        }
+      ],
+      "latency_s": 12.98,
+      "usage": {
+        "prompt_tokens": 16062,
+        "completion_tokens": 410,
+        "tool_calls": 6,
+        "rounds": 6,
+        "cost_usd": 0.007081
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 0.0,
+      "verdict": "incorrect",
+      "judge_reason": "The answer contradicts the reference: RFC requires that a client that receives the downgrade sentinel in the last eight bytes of ServerHello.random MUST abort the handshake with an illegal_parameter alert, but the answer claims the RFC does not mandate the client action.",
+      "error": null
+    },
+    {
+      "id": "norm-tls13-certificate-verify",
+      "type": "normative",
+      "question": "What must a TLS 1.3 endpoint do when certificate verification fails?",
+      "answer": "When a TLS 1.3 endpoint experiences certificate verification failure, specifically when the verification of the signature in the CertificateVerify message fails, the endpoint MUST terminate the handshake with a \"decrypt_error\" alert. This is explicitly stated in RFC 9846 Section 4.5.2.",
+      "citations": [
+        "RFC 9846 Section 4.5.2"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"TLS 1.3 certificate verification failure endpoint behavior MUST\",\"k\":5}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9846 Section 4.5.2\", \"rfc_number\": 9846, \"title\": \"The Transport Layer Security (TLS) Protocol Version 1.3\", \"section\": \"4.5.2\", \"section_title\": \"Certificate Verify\", \"is_current\": true, \"text\": \"signature received in the signature field of the\\n   CertificateVerify m"
+        }
+      ],
+      "latency_s": 8.44,
+      "usage": {
+        "prompt_tokens": 2099,
+        "completion_tokens": 90,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.000984
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer restates the reference exactly: on CertificateVerify signature verification failure the endpoint MUST terminate the handshake with a decrypt_error alert.",
+      "error": null
+    },
+    {
+      "id": "norm-smtp-line-length",
+      "type": "normative",
+      "question": "What limits does SMTP place on the length of a text line?",
+      "answer": "SMTP places a limit on the length of a text line including the <CRLF> of 1000 octets (not counting the leading dot duplicated for transparency). This limit may be increased by the use of SMTP Service Extensions (RFC 5321 Section 4.5.3.1.6).",
+      "citations": [
+        "RFC 5321 Section 4.5.3.1.6"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"SMTP line length limit\",\"k\":3}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 5321 Section 4.5.3.1.6\", \"rfc_number\": 5321, \"title\": \"Simple Mail Transfer Protocol\", \"section\": \"4.5.3.1.6\", \"section_title\": \"Text Line\", \"is_current\": true, \"text\": \"The maximum total length of a text line including the <CRLF> is 1000\\noctets (not counting the lead"
+        }
+      ],
+      "latency_s": 3.91,
+      "usage": {
+        "prompt_tokens": 1579,
+        "completion_tokens": 87,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.000771
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer correctly states the 1000-octet limit including the CRLF and that servers must not send longer lines; the added note about dot-stuffing and possible service extensions is supplementary detail.",
+      "error": null
+    },
+    {
+      "id": "norm-smtp-crlf",
+      "type": "normative",
+      "question": "How must SMTP lines be terminated?",
+      "answer": "SMTP lines must be terminated by the sequence ASCII character \"CR\" (hex value 0D) followed immediately by ASCII character \"LF\" (hex value 0A). This termination sequence is denoted as <CRLF>. Conforming implementations MUST NOT recognize or generate any other character or character sequence as a line terminator (RFC 5321 Section 2.3.8).",
+      "citations": [
+        "RFC 5321 Section 2.3.8"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"SMTP line termination\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 5321 Section 2.3.8\", \"rfc_number\": 5321, \"title\": \"Simple Mail Transfer Protocol\", \"section\": \"2.3.8\", \"section_title\": \"Lines\", \"is_current\": true, \"text\": \"Lines consist of zero or more data characters terminated by the\\nsequence ASCII character \\\"CR\\\" (hex value 0D)"
+        }
+      ],
+      "latency_s": 4.1,
+      "usage": {
+        "prompt_tokens": 2609,
+        "completion_tokens": 98,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.0012
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference by specifying lines must end with the two-character CR (0x0D) followed by LF (0x0A) (<CRLF>) and that no other line terminator or independent CR/LF is allowed.",
+      "error": null
+    },
+    {
+      "id": "norm-tcp-reset-processing",
+      "type": "normative",
+      "question": "What must a TCP implementation do when it receives a RST segment?",
+      "answer": "When a TCP implementation receives a RST segment, it first validates the segment by checking its sequence number. If valid, the action depends on the connection state: If in the LISTEN state, the RST is ignored; if in SYN-RECEIVED state and previously in LISTEN, the receiver returns to LISTEN state; otherwise, the connection is aborted, the user is advised, and the state changes to CLOSED. This response applies to all states except SYN-SENT, which has special validation rules. Additionally, TCP implementations SHOULD allow a received RST segment to include diagnostic data, though no standard for such data exists yet (RFC 9293 Section 3.5.3).",
+      "citations": [
+        "RFC 9293 Section 3.5.3"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"TCP RST segment received\",\"normative_only\":true,\"k\":5}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9293 Section 3.5.3\", \"rfc_number\": 9293, \"title\": \"Transmission Control Protocol (TCP)\", \"section\": \"3.5.3\", \"section_title\": \"Reset Processing\", \"is_current\": true, \"text\": \"it aborts the connection and advises\\nthe user and goes to the CLOSED state.\\n\\nTCP implementa"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":9293,\"section\":\"3.5.3\"}",
+          "result_preview": "{\"citation\": \"RFC 9293 Section 3.5.3\", \"rfc_number\": 9293, \"section\": \"3.5.3\", \"section_title\": \"Reset Processing\", \"text\": \"In all states except SYN-SENT, all reset (RST) segments are validated\\nby checking their SEQ fields.  A reset is valid if its sequence\\nnumber is in the window.  In the SYN-SE"
+        }
+      ],
+      "latency_s": 7.08,
+      "usage": {
+        "prompt_tokens": 3876,
+        "completion_tokens": 198,
+        "tool_calls": 2,
+        "rounds": 3,
+        "cost_usd": 0.001867
+      },
+      "grounded": true,
+      "citation_precision": 1.0,
+      "citation_recall": 0.5,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer correctly states that RSTs must be validated by sequence number and describes the RFC-prescribed state-specific handling (ignore in LISTEN, SYN-RECEIVED -> LISTEN for passive opens, otherwise abort/close), notes SYN-SENT has special rules, and adds permissible diagnostic-data detail consi",
+      "error": null
+    },
+    {
+      "id": "norm-oauth-tls-required",
+      "type": "normative",
+      "question": "When must an OAuth 2.0 authorization server require TLS?",
+      "answer": "An OAuth 2.0 authorization server MUST apply confidentiality protection using TLS with a cipher suite that provides confidentiality and integrity protection to protect against information disclosure and tampering. Also, authorization responses MUST NOT be transmitted over unencrypted network connections, and authorization servers MUST NOT allow redirection URIs that use the http scheme except for native clients using loopback interface redirection. Furthermore, client implementations supporting the Request Object URI method MUST support TLS. HTTP clients must verify the TLS server certificate to avoid man-in-the-middle attacks.\n\nIn summary, TLS is required to protect confidentiality and integrity of sensitive OAuth exchanges and tokens in transit (e.g., authorization responses).\n\nThese requirements are detailed in RFC 9101 Section 8 and RFC 9700 Section 2.6. The RFC 9101 Section 8 on TLS requirements explicitly states the need for confidentiality protection using TLS at the authorization server. RFC 9700 Section 2.6 mandates authorization responses must not be sent unencrypted and disallows http redirect URIs except in specific loopback scenarios.\n\nReferences:\n- RFC 9101 Section 8\n- RFC 9700 Section 2.6",
+      "citations": [
+        "RFC 9101 Section 8",
+        "RFC 9700 Section 2.6"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"OAuth 2.0 authorization server TLS requirement\",\"normative_only\":true,\"k\":5}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9101 Section 8\", \"rfc_number\": 9101, \"title\": \"The OAuth 2.0 Authorization Framework: JWT-Secured Authorization Request (JAR)\", \"section\": \"8\", \"section_title\": \"TLS Requirements\", \"is_current\": true, \"text\": \"Client implementations supporting the Request Object URI me"
+        }
+      ],
+      "latency_s": 6.43,
+      "usage": {
+        "prompt_tokens": 2152,
+        "completion_tokens": 266,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.001286
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "partial",
+      "judge_reason": "The answer correctly emphasizes that TLS is required to protect authorization exchanges, forbid unencrypted authorization responses, and restrict http redirect URIs, but it fails to explicitly state the reference's requirement that the authorization server MUST require TLS for both the authorization",
+      "error": null
+    },
+    {
+      "id": "norm-jwt-validate",
+      "type": "normative",
+      "question": "What must an implementation do when validating a JWT?",
+      "answer": "When validating a JWT, an implementation MUST validate all cryptographic operations used in the JWT. The entire JWT MUST be rejected if any of these cryptographic operations fail to validate. This applies to both JWTs with a single set of Header Parameters and Nested JWTs, where both outer and inner operations MUST be validated using the keys and algorithms supplied by the application (RFC 8725 Section 3.3).",
+      "citations": [
+        "RFC 8725 Section 3.3"
+      ],
+      "refused": false,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"JWT validation requirements MUST\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9113 Section 8.2.1\", \"rfc_number\": 9113, \"title\": \"HTTP/2\", \"section\": \"8.2.1\", \"section_title\": \"Field Validity\", \"is_current\": true, \"text\": \"MUST perform the following minimal\\nvalidation of field names and values:\\n\\n*  A field name MUST NOT contain characters in t"
+        },
+        {
+          "tool": "resolve_current_spec",
+          "arguments": "{\"rfc_number\":8725}",
+          "result_preview": "{\"requested\": 8725, \"current\": 8725, \"is_current\": true, \"chain\": [{\"rfc_number\": 8725, \"title\": \"JSON Web Token Best Current Practices\", \"status\": \"BEST CURRENT PRACTICE\"}], \"split_across\": null}"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":8725,\"section\":\"3.3\"}",
+          "result_preview": "{\"citation\": \"RFC 8725 Section 3.3\", \"rfc_number\": 8725, \"section\": \"3.3\", \"section_title\": \"Validate All Cryptographic Operations\", \"text\": \"All cryptographic operations used in the JWT MUST be validated and\\nthe entire JWT MUST be rejected if any of them fail to validate.\\nThis is true not only of"
+        }
+      ],
+      "latency_s": 6.26,
+      "usage": {
+        "prompt_tokens": 6005,
+        "completion_tokens": 146,
+        "tool_calls": 3,
+        "rounds": 4,
+        "cost_usd": 0.002636
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference by requiring parsing and verification of the JWT (including signature/MAC), rejecting the JWT if any cryptographic validation fails, and correctly extends this to nested JWTs and use of application-supplied keys/algorithms.",
+      "error": null
+    },
+    {
+      "id": "unans-nonexistent-rfc",
+      "type": "unanswerable",
+      "question": "What does RFC 99999 specify?",
+      "answer": "RFC 99999 does not exist.",
+      "citations": [
+        "RFC 99999"
+      ],
+      "refused": true,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "get_rfc_metadata",
+          "arguments": "{\"rfc_number\":99999}",
+          "result_preview": "{\"error\": \"RFC 99999 does not exist\"}"
+        }
+      ],
+      "latency_s": 1.77,
+      "usage": {
+        "prompt_tokens": 1157,
+        "completion_tokens": 30,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.000511
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer correctly states that RFC 99999 does not exist, matching the reference that no such RFC exists.",
+      "error": null
+    },
+    {
+      "id": "unans-ietf-budget",
+      "type": "unanswerable",
+      "question": "What is the IETF's annual operating budget?",
+      "answer": "IETF documents do not typically contain information about the IETF's annual operating budget. The IETF is primarily a standards organization focused on producing technical RFCs, and financial details are usually managed by the Internet Society (ISOC), which supports the IETF.\n\nIf you want precise financial information, you would have to look at ISOC's public financial reports rather than any RFC. RFCs do not specify such budgetary details. Therefore, the IETF's annual operating budget is not documented in IETF RFCs.",
+      "citations": [],
+      "refused": true,
+      "hit_limit": false,
+      "trajectory": [],
+      "latency_s": 2.19,
+      "usage": {
+        "prompt_tokens": 560,
+        "completion_tokens": 106,
+        "tool_calls": 0,
+        "rounds": 1,
+        "cost_usd": 0.000394
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer correctly states that RFCs do not specify the IETF's annual operating budget and directs to ISOC financial reports for that information, matching the reference.",
+      "error": null
+    },
+    {
+      "id": "unans-implementation-language",
+      "type": "unanswerable",
+      "question": "Which programming language should I use to implement an HTTP/3 server?",
+      "answer": "The IETF RFCs do not prescribe or recommend any specific programming language for implementing an HTTP/3 server. Implementation language choice is generally left to the discretion of developers and depends on their specific requirements, such as performance, ecosystem, and developer expertise.\n\nIf you want, I can find guidance or best practices from RFCs about HTTP/3 implementation that might mention certain languages or libraries, but typically, the standards focus on protocol details rather than implementation language. Would you like me to search for any recommendations or common practices mentioned in the documentation?",
+      "citations": [],
+      "refused": true,
+      "hit_limit": false,
+      "trajectory": [],
+      "latency_s": 1.85,
+      "usage": {
+        "prompt_tokens": 564,
+        "completion_tokens": 110,
+        "tool_calls": 0,
+        "rounds": 1,
+        "cost_usd": 0.000402
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "Matches the reference: RFCs do not prescribe implementation languages and the choice is left to developers, so the answer correctly states the corpus cannot specify a language.",
+      "error": null
+    },
+    {
+      "id": "unans-future-rfcs",
+      "type": "unanswerable",
+      "question": "How many RFCs will the IETF publish in 2030?",
+      "answer": "The corpus does not support an answer regarding how many RFCs the IETF will publish in 2030. There is no information in the RFCs about planned or fixed numbers of RFCs for future years.",
+      "citations": [],
+      "refused": true,
+      "hit_limit": false,
+      "trajectory": [],
+      "latency_s": 2.92,
+      "usage": {
+        "prompt_tokens": 889,
+        "completion_tokens": 115,
+        "tool_calls": 0,
+        "rounds": 1,
+        "cost_usd": 0.00054
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference by correctly stating that RFCs contain no information or prediction about how many RFCs the IETF will publish in 2030.",
+      "error": null
+    },
+    {
+      "id": "unans-http-status-599",
+      "type": "unanswerable",
+      "question": "What does the HTTP status code 599 mean?",
+      "answer": "The HTTP status code 599 is not defined in the current HTTP specifications. The official RFC 9110, which covers HTTP Semantics, does not list a 599 status code among the standard HTTP status codes. The search did not return any normative definitions or descriptions for the 599 status code in the current RFCs. \n\nTherefore, 599 is not an officially recognized HTTP status code according to the current standards (RFC 9110). It may be used as a non-standard or custom code in some systems, but it is not part of the official HTTP status code registry.\n\nReference: RFC 9110 Section 18.3 does not list 599 among recognized status codes.",
+      "citations": [
+        "RFC 9110",
+        "RFC 9110 Section 18.3"
+      ],
+      "refused": true,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"HTTP status code 599\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9110 Section 18.3\", \"rfc_number\": 9110, \"title\": \"HTTP Semantics\", \"section\": \"18.3\", \"section_title\": \"Status Code Registration\", \"is_current\": true, \"text\": \"| 421   | Misdirected Request           | 15.5.20 |\\n\\n         +-------+-------------------------------+----"
+        }
+      ],
+      "latency_s": 4.7,
+      "usage": {
+        "prompt_tokens": 2202,
+        "completion_tokens": 160,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.001137
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer accurately states that 599 is not defined by the HTTP specifications (e.g., RFC 9110) and only appears as a non-standard/custom code, matching the reference.",
+      "error": null
+    },
+    {
+      "id": "unans-tls14",
+      "type": "unanswerable",
+      "question": "What are the main changes introduced in TLS 1.4?",
+      "answer": "There is no RFC specifying TLS 1.4 as a current version of the protocol. The latest version of TLS defined in the RFCs in force is TLS 1.3, specified in RFC 9846. It introduced major changes from TLS 1.2 including redesigned key derivation using HKDF, a restructured handshake state machine, removal of superfluous messages like ChangeCipherSpec (except for middlebox compatibility), inclusion of elliptic curve algorithms in the base spec, and new signature algorithms such as EdDSA.\n\nTLS versions prior to 1.3, like TLS 1.0, 1.1, and 1.2, are specified in older RFCs, with 1.1 making improvements over 1.0 in initialization vectors and padding error handling. However, nothing in the available current RFCs refers to TLS 1.4 or its changes.\n\nIf you have a specific reference to TLS 1.4, it may not be standardized in an RFC yet or does not exist as an IETF specification. \n\nReferences: RFC 9846 Section 1.3 and other sections; RFC 8996 Section 2.",
+      "citations": [
+        "RFC 9846",
+        "RFC 9846 Section 1.3",
+        "RFC 8996 Section 2"
+      ],
+      "refused": true,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"TLS 1.4\",\"k\":5,\"current_only\":true}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 8996 Section 2\", \"rfc_number\": 8996, \"title\": \"Deprecating TLS 1.0 and TLS 1.1\", \"section\": \"2\", \"section_title\": \"Support for Deprecation\", \"is_current\": true, \"text\": \"copied with\\npermission from Section 1.1, \\\"History of TLS\\\", of [NIST800-52r2]:\\n\\n|  TLS 1.1, spe"
+        }
+      ],
+      "latency_s": 6.11,
+      "usage": {
+        "prompt_tokens": 2758,
+        "completion_tokens": 269,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.001534
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer correctly states that TLS 1.4 does not exist and that TLS 1.3 (RFC 9846) is the latest; the extra details about TLS 1.3 do not contradict the reference.",
+      "error": null
+    },
+    {
+      "id": "unans-vendor-market-share",
+      "type": "unanswerable",
+      "question": "Which web server software has the largest market share among HTTP/2 deployments?",
+      "answer": "The RFCs retrieved do not contain specific information about which web server software has the largest market share among HTTP/2 deployments. Therefore, based on the IETF RFC corpus, I do not have an answer to this question.",
+      "citations": [],
+      "refused": true,
+      "hit_limit": false,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"largest market share web server HTTP/2 deployments\"}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9113 Section 3\", \"rfc_number\": 9113, \"title\": \"HTTP/2\", \"section\": \"3\", \"section_title\": \"Starting HTTP/2\", \"is_current\": true, \"text\": \"Implementations that generate HTTP requests need to discover whether\\na server supports HTTP/2.\\n\\nHTTP/2 uses the \\\"http\\\" and \\\"ht"
+        }
+      ],
+      "latency_s": 3.36,
+      "usage": {
+        "prompt_tokens": 2400,
+        "completion_tokens": 71,
+        "tool_calls": 1,
+        "rounds": 2,
+        "cost_usd": 0.001074
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer correctly states that the IETF RFC corpus does not provide deployment statistics about which web server has the largest HTTP/2 market share, matching the reference assertion.",
+      "error": null
+    },
+    {
+      "id": "unans-quic-mandatory-port",
+      "type": "unanswerable",
+      "question": "Which port number does RFC 9000 require all QUIC connections to use?",
+      "answer": "RFC 9000 does not specify a required port number for all QUIC connections. The RFC focuses on the protocol itself but does not mandate the use of any particular UDP port number for QUIC. Other documents, such as RFC 9250, specify ports for specific uses of QUIC (e.g., port 853 for DNS over QUIC), but RFC 9000 itself does not require a particular port.\n\nTherefore, RFC 9000 does not require all QUIC connections to use a specific port number.\n\nReference: RFC 9000 does not state a required port number for QUIC connections (no relevant section specifying a port in the returned results).",
+      "citations": [
+        "RFC 9000",
+        "RFC 9250"
+      ],
+      "refused": true,
+      "hit_limit": true,
+      "trajectory": [
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"QUIC default port number\",\"k\":3}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9250 Section 4.1.1\", \"rfc_number\": 9250, \"title\": \"DNS over Dedicated QUIC Connections\", \"section\": \"4.1.1\", \"section_title\": \"Port Selection\", \"is_current\": true, \"text\": \"By default, a DNS server that supports DoQ MUST listen for and accept\\nQUIC connections on the d"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":9000,\"section\":\"5.1\"}",
+          "result_preview": "{\"citation\": \"RFC 9000 Section 5.1\", \"rfc_number\": 9000, \"section\": \"5.1\", \"section_title\": \"Connection ID\", \"text\": \"Each connection possesses a set of connection identifiers, or\\nconnection IDs, each of which can identify the connection.\\nConnection IDs are independently selected by endpoints; eac"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":9000,\"section\":\"7.2\"}",
+          "result_preview": "{\"citation\": \"RFC 9000 Section 7.2\", \"rfc_number\": 9000, \"section\": \"7.2\", \"section_title\": \"Negotiating Connection IDs\", \"text\": \"A connection ID is used to ensure consistent routing of packets, as\\ndescribed in Section 5.1.  The long header contains two connection\\nIDs: the Destination Connection "
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":9000,\"section\":\"13\"}",
+          "result_preview": "{\"citation\": \"RFC 9000 Section 13\", \"rfc_number\": 9000, \"section\": \"13\", \"section_title\": \"Packetization and Reliability\", \"text\": \"A sender sends one or more frames in a QUIC packet; see Section 12.4.\\n\\nA sender can minimize per-packet bandwidth and computational costs by\\nincluding as many frames"
+        },
+        {
+          "tool": "get_section",
+          "arguments": "{\"rfc_number\":9000,\"section\":\"6\"}",
+          "result_preview": "{\"citation\": \"RFC 9000 Section 6\", \"rfc_number\": 9000, \"section\": \"6\", \"section_title\": \"Version Negotiation\", \"text\": \"Version negotiation allows a server to indicate that it does not\\nsupport the version the client used.  A server sends a Version\\nNegotiation packet in response to each packet that"
+        },
+        {
+          "tool": "search_rfcs",
+          "arguments": "{\"query\":\"UDP port number QUIC\",\"k\":3}",
+          "result_preview": "{\"results\": [{\"citation\": \"RFC 9000 Section 1\", \"rfc_number\": 9000, \"title\": \"QUIC: A UDP-Based Multiplexed and Secure Transport\", \"section\": \"1\", \"section_title\": \"Overview\", \"is_current\": true, \"text\": \"used to limit stream creation\\nand to bound the amount of data that can be sent.\\n\\nQUIC provid"
+        }
+      ],
+      "latency_s": 11.36,
+      "usage": {
+        "prompt_tokens": 17013,
+        "completion_tokens": 274,
+        "tool_calls": 6,
+        "rounds": 6,
+        "cost_usd": 0.007244
+      },
+      "grounded": false,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "mention_coverage": 1.0,
+      "verdict": "correct",
+      "judge_reason": "The answer matches the reference by correctly stating RFC 9000 does not mandate a specific port for QUIC and appropriately notes that other RFCs may specify ports for particular uses.",
+      "error": null
+    }
+  ]
+}

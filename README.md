@@ -97,16 +97,19 @@ Answers, 60 questions, judged by a separate model ([detail](eval/results/ANSWERS
 
 | | |
 |---|---|
-| judged correct | 0.7333 |
-| cited a labelled section | 0.5769 |
+| judged correct | 0.7833 |
+| cited a labelled section | 0.5577 |
 | **asserted anything without citing it** | **0.0000** |
 | abstained on unanswerable questions | 8 of 8 |
-| cost per question | $0.0028 |
+| cost per question | $0.0026 |
 
-Two caveats that belong next to those numbers rather than in a footnote. Run-to-run
-spread on the same configuration is 0.033, so nothing smaller than that is a result.
-And judged correctness exceeding grounding is mostly the labels: `relevant` lists
-sections *sufficient* to answer, not every section it is *acceptable* to cite.
+Three caveats that belong next to those numbers rather than in a footnote. Run-to-run
+spread on an unchanged configuration is 0.033, so nothing smaller than that is a result
+and the judged figure above sits inside a 0.7333-0.7833 band across runs. Judged
+correctness exceeding grounding is mostly the labels: `relevant` lists sections
+*sufficient* to answer, not every section it is *acceptable* to cite. And the zero is
+the only number here that has never moved - five runs, no answer that asserted anything
+without citing it.
 
 Latency, local ([detail](load/README.md)):
 

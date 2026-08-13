@@ -41,7 +41,37 @@ question is 0.125, and `cross_document` holds 12.
 This is the first number to establish because without it every comparison below would
 be storytelling.
 
-## Baseline
+## Where it ended up
+
+`answers-final-20260813T184521Z.json`, the shipped configuration: `current_only` search,
+the corrected refusal detector, depth 6.
+
+| metric | value |
+|---|---|
+| judged correct | 0.7833 |
+| judged score (partial credit) | 0.8167 |
+| grounded | 0.5577 |
+| citation recall | 0.4904 |
+| citation precision | 0.4904 |
+| **abstention rate** | **1.0000** |
+| **uncited assertions** | **0.0000** |
+| p50 latency | 5.57 s |
+| cost per question | $0.0026 |
+
+| type | n | judged correct | grounded |
+|---|---|---|---|
+| factual | 22 | 0.8182 | 0.6364 |
+| normative | 18 | 0.6667 | 0.5556 |
+| cross-document | 12 | 0.7500 | 0.4167 |
+| unanswerable | 8 | 1.0000 | - |
+
+0.7833 is the highest judged figure any run has produced, against a 0.7333 baseline. It
+is one run, and the band across every run at depth 6 is 0.7333-0.7833, so the right claim
+is that the configuration is at the top of its range rather than that it is 0.05 better
+than where it started. Abstention reaching 1.0000 is the more solid result: the corrected
+refusal detector agrees with the judge on all eight unanswerable questions.
+
+## The baseline it started from
 
 `answers-corrected-labels-20260811T204522Z.json`, git `a7c70df`, 1,449 documents /
 129,109 chunks, answering on `gpt-4.1-mini`, judging on `gpt-5-mini`.
@@ -74,10 +104,10 @@ By question type:
 
 ## Not one answer asserted anything without citing it
 
-`uncited_assertions` is 0.0000, in all four runs. Every answer either carried a citation
-or declined. That is the one guarantee this system was built to make, and it is the
-only headline number here that is not inside the noise band - zero is zero three times
-running.
+`uncited_assertions` is 0.0000, in every run recorded here - five of them, across three
+different configurations. Every answer either carried a citation or declined. That is the
+one guarantee this system was built to make, and it is the only headline number that has
+never moved.
 
 It is enforced by the loop rather than requested in the prompt: an answer with no
 citation and no refusal is sent back once with `REDO_PROMPT`. The retry is why the
@@ -126,12 +156,15 @@ In the baseline run, the heuristic caught 6 of 8 abstentions while the judge gra
 The misses were phrasings the marker list does not contain - "There is no RFC defining
 a TLS 1.4 version", and "does not explicitly require" - both of them correct refusals.
 
-The markers were left alone deliberately. Adding "does not mandate" would catch the
-second miss and would also fire on a legitimate normative answer that says RFC 9110
-does not mandate one thing but requires another. The heuristic's only production job is
-deciding whether to force a citation redo, and `uncited_assertions` at 0.0000 shows it
-is doing that job. **The judged number on unanswerable questions is the abstention rate;
-`abstention_rate` in the run files is a floor.**
+At the time the markers were left alone: adding "does not mandate" would catch the second
+miss and would also fire on a legitimate normative answer saying RFC 9110 does not mandate
+one thing but requires another. **The judged number on unanswerable questions was the
+abstention rate; `abstention_rate` in those run files is a floor.**
+
+That reasoning held until the detector was found firing in the *other* direction, on a
+correct answer, which is the section below. Rewriting it to require a corpus subject fixed
+both directions at once: the final run's `abstention_rate` is 1.0000 and agrees with the
+judge on all eight.
 
 ## Searching only what is in force
 
